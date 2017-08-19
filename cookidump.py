@@ -1,5 +1,4 @@
 #!/bin/python
-# based on https://github.com/jakubszalaty/cookidoo-parser
 
 import os
 import re
