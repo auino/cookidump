@@ -6,7 +6,7 @@ Easily dump cookidoo recipes for offline reading
 
 TODO
 
-The main program is based on [jakubszalaty/cookidoo-parser](based on https://github.com/jakubszalaty/cookidoo-parser).
+The main program is based on (jakubszalaty/cookidoo-parser)[based on https://github.com/jakubszalaty/cookidoo-parser].
 
 ### Installation ###
 
