@@ -127,6 +127,9 @@ for r in recipes:
 	out_file.write(json.dumps(r))
 	out_file.close()
 
+# removing the output zip file, if already existent
+if os.path.isfile(OUTPUTFILE): os.remove(OUTPUTFILE)
+
 # creating the output zip file
 shutil.make_archive(OUTPUTFILE, 'zip', TMPDIR)
 

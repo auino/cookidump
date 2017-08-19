@@ -1,6 +1,6 @@
 # cookidump
 
-Easily dump cookidoo recipes for offline reading
+Easily dump cookidoo recipes from the official website
 
 ### Description ###
 
