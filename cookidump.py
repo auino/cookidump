@@ -121,6 +121,7 @@ if not os.path.exists(TMPDIR): os.makedirs(TMPDIR)
 
 # cycling on found recipes
 for r in recipes:
+	# getting recipe details
 	r['recipe'] = getrecipe(r['url'])
 	# writing the recipe as a json file
 	out_file = open(TMPDIR+'recipe_'+r['id']+'.json', 'w')
