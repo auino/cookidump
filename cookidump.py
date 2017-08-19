@@ -9,27 +9,29 @@ import shutil
 import urllib2
 import argparse
 
-TMPDIR = '/tmp/cookidump/'
-
+# arguments parsing
 parser = argparse.ArgumentParser(description='Dump Cookidoo recipes')
 parser.add_argument('domain', type=str, help='the cookidoo domain to be used (e.g. cookidoo.it)')
 parser.add_argument('outputdir', type=str, help='the output directory')
 parser.add_argument('-c', '--recipescount', type=int, help='the number of recipes to dump', default=1455)
 parser.add_argument('authorization', type=str, help='the authorization bearer (see https://github.com/auino/cookidump for more information)')
-
 args = parser.parse_args()
 
+# arguments retrieval
 DOMAIN = args.domain
 BEARER = args.authorization
 OUTPUTDIR = args.outputdir
 LIMIT = args.recipescount
 OUTPUTFILE = OUTPUTDIR+('/' if OUTPUTDIR[-1:] != '/' else '')+'CookiDump'
 
+# useful variables creation
+TMPDIR = '/tmp/cookidump/'
 BASEURL = 'https://'+DOMAIN
 BROWSEURL = BASEURL+'/vorwerkApiV2/apiv2/browseRecipe?limit='+str(LIMIT)
 #RECIPEBASEURL = BASEURL+'/vorwerkWebapp/app#/recipe/'
 RECIPEBASEURL = BASEURL+'/vorwerkApiV2/apiv2/recipe/'
 
+# gets the image of a recipe (the biggest image possible)
 def getrecipeimage(r):
 	needle = 'ipad_recipe_thumb_large'
 	res = None
@@ -38,6 +40,7 @@ def getrecipeimage(r):
 		if i['name'] == needle: return res
 	return res
 
+# gets the id of a recipe
 def getrecipeid(r):
 	try:
 		url = r['links'][0]['href']+'/'
@@ -48,11 +51,12 @@ def getrecipeid(r):
 		print str(e)
 		return None
 
+# generates the recipe url based on the recipe id
 def getrecipeurl(r):
 	recipeid = getrecipeid(r)
-	#return 'https://cookidoo.it/vorwerkApiV2/apiv2/browseRecipe/'+recipeid+'/'
 	return RECIPEBASEURL+recipeid
 
+# gets recipe times
 def getrecipetime(r, needle, field='value'):
 	for t in r['times']:
 		try:
@@ -60,6 +64,7 @@ def getrecipetime(r, needle, field='value'):
 		except: pass
 	return None
 
+# downloads information from the cookidoo website
 def geturldata(url):
 	try:
 		headers = {"Authorization": BEARER}
@@ -72,21 +77,20 @@ def geturldata(url):
 		else: print str(e)
 		exit(2)
 
+# gets the recipes list
 def getrecipeslist():
 	return geturldata(BROWSEURL)
 
+# gets the recipe given an input url
 def getrecipe(url):
 	return geturldata(url)
 
-def zipdir(path, ziph):
-	# ziph is zipfile handle
-	for root, dirs, files in os.walk(path):
-		for file in files:
-			ziph.write(os.path.join(root, file))
-
+# the list of all found recipes
 recipes = []
 
+# cycling on found recipes
 for recipe in getrecipeslist()['content']:
+	# generating the recipe object
 	recipe_obj = {
 		'id': getrecipeid(recipe),
 		'name': recipe['name'],
@@ -104,19 +108,28 @@ for recipe in getrecipeslist()['content']:
 			'thermomix': getrecipetime(recipe, 'thermomix_time')
 		}
 	}
+	# adding the recipe object to the recipes list
 	recipes.append(recipe_obj)
 
+# output file generation
+
+# removing the temporary directory, if already existent
 try: os.remove(TMPDIR)
 except: pass
 
+# creating the temporary directory again
 if not os.path.exists(TMPDIR): os.makedirs(TMPDIR)
 
+# cycling on found recipes
 for r in recipes:
 	r['recipe'] = getrecipe(r['url'])
+	# writing the recipe as a json file
 	out_file = open(TMPDIR+'recipe_'+r['id']+'.json', 'w')
 	out_file.write(json.dumps(r))
 	out_file.close()
 
+# creating the output zip file
 shutil.make_archive(OUTPUTFILE, 'zip', TMPDIR)
 
+# removing the temporary directory
 shutil.rmtree(TMPDIR)
