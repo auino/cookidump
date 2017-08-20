@@ -4,21 +4,62 @@ Easily dump cookidoo recipes from the official website
 
 ### Description ###
 
-TODO
+This program allows you to dump all recipes on [Cookidoo](https://cookidoo.co.uk) websites (available for different countries) for offline and posticipate reading.
+Those recipes are valid in particular for [Thermomix/Bimby](https://en.wikipedia.org/wiki/Thermomix) devices.
+In order to dump the recipes, a valid subscription is needed.
 
 The main program is based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
 
 ### Installation ###
 
-TODO
+
+1. Clone the repository:
+
+```
+git clone https://github.com/auino/cookidump.git
+```
+
+2. `cd` into the download folder
+
+3. You are ready to dump your recipes
 
 ### Usage ###
 
-TODO
+The following syntax is allowed:
+
+```
+python cookidump.py <domain> <outputdir> <authorization> [-c <recipescount>]
+```
+
+where:
+* `domain` identifies the cookidoo domain to be used (e.g. [cookidoo.it](http://cookidoo.it) for the Italian domain)
+* `outputdir` identifies the output directory (avoid the `~` character identifying your home directoy): a `CookiDump.zip` file will be generated inside of such directory
+* `authorization` identifies the authorization bearer to use for the communication (see below)
 
 #### Get your authorization bearer ####
 
-TODO
+In order to dump your recipes, you have to provide an authorization bearer/token to the script communicating with the Cookidoo website.
+This field identifies an authorization token associated to your account in the platform (a valid subscription is required in order to retrieve a valid token).
+
+In order to get the authorization bearer you have to:
+
+1. Open the Cookidoo website (e.g. [cookidoo.it](http://cookidoo.it)) from your browser
+
+2. Log into the platform with your credentials
+
+3. Follow the instructions in the following GIF image (in Italian language, valid for [Safari](https://www.apple.com/safari/), but similar options are available on other browsers)
+
+![Steps to get Your Authorization Bearer](authorizationbearer.gif)
+
+4. Check that the string starts with the `Bearer` word (in case, remove the `Authorization ` substring)
+
+5. Run the command, by passing the `authorization` parameter as a single parameter (hence, between `"` characters)
+
+6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes
+
+### TODO ###
+
+* Parse downloaded recipes and generate readable output files (e.g. HTML, PDF, etc.)
 
 ### Contacts ###
 
