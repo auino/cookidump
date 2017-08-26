@@ -27,7 +27,7 @@ OUTPUTFILE = OUTPUTDIR+('/' if OUTPUTDIR[-1:] != '/' else '')+'CookiDump'
 TMPDIR = '/tmp/cookidump/'
 BASEURL = 'https://'+DOMAIN
 BROWSEURL = BASEURL+'/vorwerkApiV2/apiv2/browseRecipe?limit='+str(LIMIT)
-#RECIPEBASEURL = BASEURL+'/vorwerkWebapp/app#/recipe/'
+COLLECTIONSLISTURL = BASEURL+'/vorwerkApiV2/apiv2/recipeCollection?searchTerm=&sort=0'
 RECIPEBASEURL = BASEURL+'/vorwerkApiV2/apiv2/recipe/'
 
 # gets the image of a recipe (the biggest image possible)
@@ -76,6 +76,16 @@ def geturldata(url):
 		else: print str(e)
 		exit(2)
 
+# writes data in filename
+def writetofile(data, filename):
+	out_file = open(filename, 'w')
+	out_file.write(json.dumps(data))
+	out_file.close()
+
+# gets the collections list
+def getcollectionslist():
+	return geturldata(COLLECTIONSLISTURL)
+
 # gets the recipes list
 def getrecipeslist():
 	return geturldata(BROWSEURL)
@@ -83,6 +93,9 @@ def getrecipeslist():
 # gets the recipe given an input url
 def getrecipe(url):
 	return geturldata(url)
+
+# the list of all found collections
+collections = getcollectionslist()
 
 # the list of all found recipes
 recipes = []
@@ -120,14 +133,18 @@ except: pass
 # creating the temporary directory again
 if not os.path.exists(TMPDIR): os.makedirs(TMPDIR)
 
+# storing the collections list
+writetofile(json.dumps(collections), TMPDIR+'collections.json')
+
+# storing the recipes list
+writetofile(json.dumps(recipes), TMPDIR+'recipes.json')
+
 # cycling on found recipes
 for r in recipes:
 	# getting recipe details
 	r['recipe'] = getrecipe(r['url'])
 	# writing the recipe as a json file
-	out_file = open(TMPDIR+'recipe_'+r['id']+'.json', 'w')
-	out_file.write(json.dumps(r))
-	out_file.close()
+	writetofile(json.dumps(r), TMPDIR+'recipe_'+r['id']+'.json')
 
 # removing the output zip file, if already existent
 if os.path.isfile(OUTPUTFILE): os.remove(OUTPUTFILE)
