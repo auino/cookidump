@@ -105,7 +105,8 @@ for recipe in getrecipeslist()['content']:
 			'baking_from': getrecipetime(recipe, 'baking_time', field='from'),
 			'baking_to': getrecipetime(recipe, 'baking_time', field='to'),
 			'thermomix': getrecipetime(recipe, 'thermomix_time')
-		}
+		},
+		'fulldata': recipe
 	}
 	# adding the recipe object to the recipes list
 	recipes.append(recipe_obj)
