@@ -55,7 +55,7 @@ In order to get the authorization bearer you have to:
 
 5. Run the command, by passing the `authorization` parameter as a single parameter (hence, between `"` characters)
 
-6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes (see [sample directory](https://github.com/auino/cookidump/sample_output) for output samples)
+6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes (see [sample directory](https://github.com/auino/cookidump/tree/master/sample_output) for output samples)
 
 #### Sample usage ####
 
@@ -71,9 +71,9 @@ where:
 * `/tmp/cookidump` specifies the output (temporary) directory (it will be created, if not already existent)
 * `"Bearer eyJ...ZAw"` (cutted) specifies the authorization bearer to be used 
 
-A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/sample_output).
+A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/tree/master/sample_output).
 
-Note that contents in the [sample directory](https://github.com/auino/cookidump/sample_output) have been hidden/anonimized: due to copyrights of the original creators, recipes details can not be shared.
+Note that contents in the [sample directory](https://github.com/auino/cookidump/tree/master/sample_output) have been hidden/anonimized: due to copyrights of the original creators, recipes details can not be shared.
 Nevertheless, the directory contains valuable information concerning the adopted data structures.
 
 It follows the adopted anonimization command (based on [a post on StackOverflow](https://stackoverflow.com/questions/26281538/find-and-replace-for-json-with-sed-or-awk)]:
