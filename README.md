@@ -36,6 +36,22 @@ where:
 * `outputdir` identifies the output directory (avoid the `~` character identifying your home directoy): a `CookiDump.zip` file will be generated inside of such directory
 * `authorization` identifies the authorization bearer to use for the communication (see below)
 
+#### Sample usage ####
+
+Here is a sample usage of the tool:
+
+```
+python cookidump.py -c 10 cookidoo.it /tmp/cookidump "Bearer eyJ...ZAw"
+```
+
+where:
+* `-c 10` specifies that we want to retrieve `10` recipes
+* `cookidoo.it` specifies the domain to be used (Italian domain in this sample)
+* `/tmp/cookidump` specifies the output (temporary) directory (it will be created, if not already existent)
+* `"Bearer eyJ...ZAw"` (cutted) specifies the authorization bearer to be used 
+
+A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/sample_output).
+
 #### Get your authorization bearer ####
 
 In order to dump your recipes, you have to provide an authorization bearer/token to the script communicating with the Cookidoo website.

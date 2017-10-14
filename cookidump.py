@@ -79,7 +79,7 @@ def geturldata(url):
 # writes data in filename
 def writetofile(data, filename):
 	out_file = open(filename, 'w')
-	out_file.write(json.dumps(data))
+	out_file.write(data)
 	out_file.close()
 
 # gets the collections list
