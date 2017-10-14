@@ -71,7 +71,7 @@ In order to get the authorization bearer you have to:
 
 5. Run the command, by passing the `authorization` parameter as a single parameter (hence, between `"` characters)
 
-6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes
+6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes (see [sample directory](https://github.com/auino/cookidump/sample_output) for output samples)
 
 ### TODO ###
 
