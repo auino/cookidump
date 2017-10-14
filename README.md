@@ -36,22 +36,6 @@ where:
 * `outputdir` identifies the output directory (avoid the `~` character identifying your home directoy): a `CookiDump.zip` file will be generated inside of such directory
 * `authorization` identifies the authorization bearer to use for the communication (see below)
 
-#### Sample usage ####
-
-Here is a sample usage of the tool:
-
-```
-python cookidump.py -c 10 cookidoo.it /tmp/cookidump "Bearer eyJ...ZAw"
-```
-
-where:
-* `-c 10` specifies that we want to retrieve `10` recipes
-* `cookidoo.it` specifies the domain to be used (Italian domain in this sample)
-* `/tmp/cookidump` specifies the output (temporary) directory (it will be created, if not already existent)
-* `"Bearer eyJ...ZAw"` (cutted) specifies the authorization bearer to be used 
-
-A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/sample_output).
-
 #### Get your authorization bearer ####
 
 In order to dump your recipes, you have to provide an authorization bearer/token to the script communicating with the Cookidoo website.
@@ -72,6 +56,38 @@ In order to get the authorization bearer you have to:
 5. Run the command, by passing the `authorization` parameter as a single parameter (hence, between `"` characters)
 
 6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes (see [sample directory](https://github.com/auino/cookidump/sample_output) for output samples)
+
+#### Sample usage ####
+
+Here is a sample usage of the tool:
+
+```
+python cookidump.py -c 10 cookidoo.it /tmp/cookidump "Bearer eyJ...ZAw"
+```
+
+where:
+* `-c 10` specifies that we want to retrieve `10` recipes
+* `cookidoo.it` specifies the domain to be used (Italian domain in this sample)
+* `/tmp/cookidump` specifies the output (temporary) directory (it will be created, if not already existent)
+* `"Bearer eyJ...ZAw"` (cutted) specifies the authorization bearer to be used 
+
+A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/sample_output).
+
+Note that contents in the [sample directory](https://github.com/auino/cookidump/sample_output) have been hidden/anonimized: due to copyrights of the original creators, recipes details can not be shared.
+Nevertheless, the directory contains valuable information concerning the adopted data structures.
+
+It follows the adopted anonimization command (based on [a post on StackOverflow](https://stackoverflow.com/questions/26281538/find-and-replace-for-json-with-sed-or-awk)]:
+
+```
+cat $FILE \
+| sed 's/\("id":"\)[^"]*\("\)/\1REPLACED_ID\2/g' \
+| sed 's/\("v1Id":"\)[^"]*\("\)/\1REPLACED_V1ID\2/g' \
+| sed 's/\("href":"\)[^"]*\("\)/\1REPLACED_HREF\2/g' \
+| sed 's/\("url":"\)[^"]*\("\)/\1REPLACED_URL\2/g' \
+| sed 's/\("image":"\)[^"]*\("\)/\1REPLACED_IMAGE\2/g' \
+| sed 's/\("imageUrl":"\)[^"]*\("\)/\1REPLACED_IMAGEURL\2/g' \
+| sed 's/\("locale":"\)[^"]*\("\)/\1REPLACED_LOCALE\2/g'
+```
 
 ### TODO ###
 
