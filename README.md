@@ -91,7 +91,7 @@ cat $FILE \
 
 ### TODO ###
 
-* Parse downloaded recipes and generate readable output files (e.g. HTML, PDF, etc.)
+* Parse downloaded recipes to store them on a database or to generate readable output files (e.g. HTML, PDF, etc.)
 
 ### Contacts ###
 

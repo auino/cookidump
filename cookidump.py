@@ -23,11 +23,14 @@ OUTPUTDIR = args.outputdir
 LIMIT = args.recipescount
 OUTPUTFILE = OUTPUTDIR+('/' if OUTPUTDIR[-1:] != '/' else '')+'CookiDump'
 
+# other internal variables
+COLLECTIONSLIMIT = 1000
+
 # useful variables creation
 TMPDIR = '/tmp/cookidump/'
 BASEURL = 'https://'+DOMAIN
 BROWSEURL = BASEURL+'/vorwerkApiV2/apiv2/browseRecipe?limit='+str(LIMIT)
-COLLECTIONSLISTURL = BASEURL+'/vorwerkApiV2/apiv2/recipeCollection?searchTerm=&sort=0'
+COLLECTIONSLISTURL = BASEURL+'/vorwerkApiV2/apiv2/recipeCollection?searchTerm=&sort=0&limit='+str(COLLECTIONSLIMIT)
 RECIPEBASEURL = BASEURL+'/vorwerkApiV2/apiv2/recipe/'
 
 # gets the image of a recipe (the biggest image possible)
