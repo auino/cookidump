@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 import os
 import io
 from selenium import webdriver
@@ -17,6 +18,43 @@ def getIdsOfPage(browser, page):
 		ids = []
 	return ids
 
+def getAllIds(browser):
+	"""Returns ids of recipes in page number as string list"""
+	ids, idsTotal, links = [], [], []
+	browser.get('https://cookidoo.pt')
+	tags = browser.find_elements_by_class_name('wf-tag-cloud__tag')
+
+	for tag in tags:
+		links.append(tag.get_attribute('href'))
+	
+	nTag = 1
+	nTags = len(tags)
+	for link in links:
+		n = 0
+
+		# Do while
+		browser.get('{}&page={}'.format(link, str(n)))
+		elems = browser.find_elements_by_tag_name('core-tile')
+		if len(elems) > 0:
+			for elem in elems:
+				ids.append(elem.get_attribute('id'))
+			idsTotal += ids
+			n += 1
+
+		while len(ids) > 0:
+			ids = []
+			browser.get('{}&page={}'.format(link, str(n)))
+			elems = browser.find_elements_by_tag_name('core-tile')
+			if len(elems) > 0:
+				for elem in elems:
+					ids.append(elem.get_attribute('id'))
+				idsTotal += ids
+				n += 1
+		
+		print('\r[CS] {}/{} tags retrieved | Total ids retrieved: {}'.format(nTag, nTags, len(idsTotal)))
+		nTag += 1
+	return idsTotal
+
 def startBrowser():
     """Starts browser with predefined parameters"""
     chrome_driver_path = 'chromedriver.exe'
@@ -33,40 +71,68 @@ def recipeToFile(browser, id, folder):
     with io.open(baseDir+id+'.html', 'a', encoding='utf-8') as f:
         f.write(html)
 
+def appendToMarkdown(content, file):
+    baseDir = os.getcwd() + '\\recipes\\{}.md'.format(file)
+    with io.open(baseDir, 'a', encoding='utf-8') as f:
+        f.write(content + '\n')
+
+def getFiles(folder):
+	#https://stackoverflow.com/questions/3207219/how-do-i-list-all-files-of-a-directory
+	mypath = os.getcwd() + '\\{}\\'.format(folder)
+	fileList = [f for f in os.listdir(mypath) if os.path.isfile(os.path.join(mypath, f))]
+	return fileList
+
+def isDownloaded(fileList, id):
+	try:
+		fileIndex = fileList.index('{}.html'.format(id))
+	except:
+		fileIndex = -1
+	
+	if fileIndex > 0:
+		answer = True
+	else:
+		answer = False
+	return answer
+
 def run():
 	"""Scraps all recipes and stores them in html"""
 	print('[CS] Starting things off')
-	b = startBrowser()
-	n = 0
-	idsTotal = []
-	ids = []
+	brw = startBrowser()
+	idsTotal, idsDownloaded = [], []
+	activeFolder = 'recipes'
+	activePath = os.getcwd() + '\\{}\\'.format(activeFolder)
 
 	#login page
-	b.get('https://cookidoo.pt/foundation/pt-PT')
+	brw.get('https://cookidoo.pt/foundation/pt-PT')
 	input('[CS] Please login to your account and then press enter to continue:')
 	print('[CS] Proceeding with scrapping')
 
-	ids = getIdsOfPage(b, n)
-	idsTotal += ids
-	n += 1
-	while len(ids) > 0:
-		ids = getIdsOfPage(b, n)
-		idsTotal += ids
-		print('\r[CS] {} ids retrieved from page {} | Total ids retrieved: {}'.format(len(ids), n, len(idsTotal)))
-		n += 1
+	#Creating necessary folder
+	if not os.path.exists(activePath):
+		os.makedirs(activePath)
 
-	with open('ids.txt', 'a') as f:
+	idsTotal = getAllIds(brw)
+
+	with open('idsNew.txt', 'w') as f:
 		f.write(str(idsTotal))
-	print('[CS] Stored ids in txt file')
+	print('[CS] Stored ids in idsNew.txt file')
+
+	files = getFiles(activeFolder)
 
 	i = 0
 	j = len(idsTotal)
 	for id in idsTotal:
-		recipeToFile(b, id, 'recipes')
+		if not isDownloaded(files, id):
+			recipeToFile(brw, id, activeFolder)
+			idsDownloaded.append(id)
 		i += 1
-		print('\r[CS] {}/{} recipes stored'.format(i, j))
+		print('\r[CS] {}/{} recipes processed'.format(i, j))
 	
-	print('[CS] closing session\n[CS] goodbye!')
-	b.close()
+	with open('idsDownloaded.txt', 'w') as f:
+		f.write(str(idsDownloaded))
+	print('[CS] {} ids downloaded, ids stored in IdsDownloaded.txt file'.format(len(idsDownloaded)))
+
+	print('[CS] Closing session\n[CS] Goodbye!')
+	brw.close()
 
 if  __name__ =='__main__':run()
