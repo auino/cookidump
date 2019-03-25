@@ -89,9 +89,24 @@ cat $FILE \
 | sed 's/\("locale":"\)[^"]*\("\)/\1REPLACED_LOCALE\2/g'
 ```
 
+### Cookiscrap Usage ###
+
+To use this script, you must have Chrome installed and download a [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) from Google website and save it next to the program. This is a temporary solution to achieve easy login.
+
+Simply run the following command to start the program. The program is interactive to simplify it's usage.
+
+```
+python cookiscrap.py
+```
+
+The program will open a Chrome window and wait until the account is logged in. After that, press return in the command line and it will search for all recipes IDs and download them as html files.
+
+When running again in the same path, it will only download the missing recipes.
+
 ### TODO ###
 
 * Parse downloaded recipes to store them on a database or to generate readable output files (e.g. HTML, PDF, etc.)
+* Make Chrome run headless for better speeds
 
 ### Contacts ###
 

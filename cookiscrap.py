@@ -96,9 +96,9 @@ def isDownloaded(fileList, id):
 
 def run():
 	"""Scraps all recipes and stores them in html"""
-	print('[CS] Starting things off')
+	print('[CS] Welcome to cookiscrap, starting things off...')
 	brw = startBrowser()
-	idsTotal, idsDownloaded = [], []
+	idsTotal, idsDownloaded = [], [] 
 	activeFolder = 'recipes'
 	activePath = os.getcwd() + '\\{}\\'.format(activeFolder)
 
@@ -136,3 +136,4 @@ def run():
 	brw.close()
 
 if  __name__ =='__main__':run()
+	
