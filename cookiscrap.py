@@ -112,7 +112,7 @@ def run():
 
 	#login page
 	#brw.get('https://cookidoo.pt/foundation/pt-PT')
-	locale = input('[CS] Complete the website domain: https://cookidoo.')
+	locale = str(input('[CS] Complete the website domain: https://cookidoo.'))
 	baseURL = 'https://cookidoo.{}/'.format(locale)
 	brw.get(baseURL)
 
@@ -122,7 +122,7 @@ def run():
 
 	rbURL = getRecipeBaseURL(brw)
 
-	input('[CS] Please login to your account and then press enter to continue:')
+	reply = input('[CS] Please login to your account and then enter y to continue:')
 	print('[CS] Proceeding with scrapping')
 
 	#Creating necessary folder
