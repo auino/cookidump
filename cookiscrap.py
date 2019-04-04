@@ -6,22 +6,22 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
 
-def getIdsOfPage(browser, page):
-	"""Returns ids of recipes in page number as string list"""
-	browser.get('https://cookidoo.pt/search/pt-PT?context=recipes&countries=pt&page='+str(page))
-	elems = browser.find_elements_by_tag_name('core-tile')
-	if len(elems) > 0:
-		ids = []
-		for elem in elems:
-			ids.append(elem.get_attribute('id'))
-	else:
-		ids = []
-	return ids
+# def getIdsOfPage(browser, page):
+# 	"""Returns ids of recipes in page number as string list"""
+# 	browser.get('https://cookidoo.pt/search/pt-PT?context=recipes&countries=pt&page='+str(page))
+# 	elems = browser.find_elements_by_tag_name('core-tile')
+# 	if len(elems) > 0:
+# 		ids = []
+# 		for elem in elems:
+# 			ids.append(elem.get_attribute('id'))
+# 	else:
+# 		ids = []
+# 	return ids
 
-def getAllIds(browser):
+def getAllIds(browser, baseURL):
 	"""Returns ids of recipes in page number as string list"""
 	ids, idsTotal, links = [], [], []
-	browser.get('https://cookidoo.pt')
+	browser.get(baseURL)
 	tags = browser.find_elements_by_class_name('wf-tag-cloud__tag')
 
 	for tag in tags:
@@ -63,12 +63,20 @@ def startBrowser():
     driver = webdriver.Chrome(executable_path=chrome_driver_path, chrome_options=chrome_options)
     return driver
 
-def recipeToFile(browser, id, folder):
+def getRecipeBaseURL(browser):
+	"""Gets the base URL to use with the recipe ID"""
+	link =  browser.find_element_by_class_name('link--alt')
+	url = link.get_attribute('href')
+	baseURL = url[0:url.find('/r', len(url)-10)+1]
+	return baseURL
+
+def recipeToFile(browser, id, folder, baseURL):
     """Gets html by recipe id and saves in html file"""
-    browser.get('https://cookidoo.pt/recipes/recipe/pt-PT/'+str(id))
+	#TODO deal with locale URLs
+    browser.get(baseURL+str(id))
     html = browser.page_source
     baseDir = os.getcwd()+'\\{}\\'.format(folder)
-    with io.open(baseDir+id+'.html', 'a', encoding='utf-8') as f:
+    with io.open(baseDir+id+'.html', 'w', encoding='utf-8') as f:
         f.write(html)
 
 def appendToMarkdown(content, file):
@@ -103,7 +111,17 @@ def run():
 	activePath = os.getcwd() + '\\{}\\'.format(activeFolder)
 
 	#login page
-	brw.get('https://cookidoo.pt/foundation/pt-PT')
+	#brw.get('https://cookidoo.pt/foundation/pt-PT')
+	locale = input('[CS] Complete the website domain: https://cookidoo.')
+	baseURL = 'https://cookidoo.{}/'.format(locale)
+	brw.get(baseURL)
+
+	#TODO check if URL contains '/foundation/'
+	#if not, program will not work...
+	#brw.current_url.contains('/foundation/')
+
+	rbURL = getRecipeBaseURL(brw)
+
 	input('[CS] Please login to your account and then press enter to continue:')
 	print('[CS] Proceeding with scrapping')
 
@@ -111,23 +129,28 @@ def run():
 	if not os.path.exists(activePath):
 		os.makedirs(activePath)
 
-	idsTotal = getAllIds(brw)
+	#Fetching all the IDs
+	idsTotal = getAllIds(brw, baseURL)
 
-	with open('idsNew.txt', 'w') as f:
+	#Writing all the IDs to a file
+	with open('ids.txt', 'w') as f:
 		f.write(str(idsTotal))
-	print('[CS] Stored ids in idsNew.txt file')
+	print('[CS] Stored ids in ids.txt file')
 
+	#Checking which files are already downloaded
 	files = getFiles(activeFolder)
 
+	#Downloading all the recipes
 	i = 0
 	j = len(idsTotal)
 	for id in idsTotal:
 		if not isDownloaded(files, id):
-			recipeToFile(brw, id, activeFolder)
+			recipeToFile(brw, id, activeFolder, rbURL)
 			idsDownloaded.append(id)
 		i += 1
 		print('\r[CS] {}/{} recipes processed'.format(i, j))
 	
+	#Writing all the downloaded IDs to a file
 	with open('idsDownloaded.txt', 'w') as f:
 		f.write(str(idsDownloaded))
 	print('[CS] {} ids downloaded, ids stored in IdsDownloaded.txt file'.format(len(idsDownloaded)))
