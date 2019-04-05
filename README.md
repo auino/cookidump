@@ -8,7 +8,7 @@ This program allows you to dump all recipes on [Cookidoo](https://cookidoo.co.uk
 Those recipes are valid in particular for [Thermomix/Bimby](https://en.wikipedia.org/wiki/Thermomix) devices.
 In order to dump the recipes, a valid subscription is needed.
 
-The main program is based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
+The initial concept of this program was based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
 
 ### Installation ###
 
@@ -21,77 +21,54 @@ git clone https://github.com/auino/cookidump.git
 
 2. `cd` into the download folder
 
-3. You are ready to dump your recipes
+3. Install [Python](https://www.python.org) requirements:
+
+```
+pip install -r requirements.txt
+```
+
+4. Install the [Google Chrome](https://chrome.google.com) browser, if not already installed
+
+5. Download the [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) and save it on the `cookidump` folder
+
+6. You are ready to dump your recipes
 
 ### Usage ###
 
-The following syntax is allowed:
+Simply run the following command to start the program. The program is interactive to simplify it's usage.
 
 ```
-python cookidump.py <domain> <outputdir> <authorization> [-c <recipescount>]
-```
-
-where:
-* `domain` identifies the cookidoo domain to be used (e.g. [cookidoo.it](http://cookidoo.it) for the Italian domain)
-* `outputdir` identifies the output directory (avoid the `~` character identifying your home directoy): a `CookiDump.zip` file will be generated inside of such directory
-* `authorization` identifies the authorization bearer to use for the communication (see below)
-
-#### Get your authorization bearer ####
-
-In order to dump your recipes, you have to provide an authorization bearer/token to the script communicating with the Cookidoo website.
-This field identifies an authorization token associated to your account in the platform (a valid subscription is required in order to retrieve a valid token).
-
-In order to get the authorization bearer you have to:
-
-1. Open the Cookidoo website (e.g. [cookidoo.it](http://cookidoo.it)) from your browser
-
-2. Log into the platform with your credentials
-
-3. Follow the instructions in the following GIF image (in Italian language, valid for [Safari](https://www.apple.com/safari/), but similar options are available on other browsers)
-
-![Steps to get Your Authorization Bearer](authorizationbearer.gif)
-
-4. Check that the string starts with the `Bearer` word (in case, remove the `Authorization ` substring)
-
-5. Run the command, by passing the `authorization` parameter as a single parameter (hence, between `"` characters)
-
-6. After the program execution, an output `CookiDump.zip` file will be produced, containing all dumped recipes (see [sample directory](https://github.com/auino/cookidump/tree/master/sample_output) for human readable output samples)
-
-#### Sample usage ####
-
-Here is a sample usage of the tool:
-
-```
-python cookidump.py -c 10 cookidoo.it /tmp/cookidump "Bearer eyJ...ZAw"
+python cookidump.py <webdriverfile> <outputdir>
 ```
 
 where:
-* `-c 10` specifies that we want to retrieve `10` recipes
-* `cookidoo.it` specifies the domain to be used (Italian domain in this sample)
-* `/tmp/cookidump` specifies the output (temporary) directory (it will be created, if not already existent)
-* `"Bearer eyJ...ZAw"` (cutted) specifies the authorization bearer to be used 
+* `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
+* `outputdir` identifies the path of the output directory
 
-A correct execution of the program will produce a `CookiDump.zip` file, including the files reported in the [sample directory](https://github.com/auino/cookidump/tree/master/sample_output) (JSON files have been converted to a human readable version).
+The program will open a [Google Chrome](https://chrome.google.com) window and wait until you are logged in into your [Cookidoo](https://cookidoo.co.uk) account (different countries are supported).
+After that, press return in the command line and it will search for all recipes IDs and download them as HTML files.
 
-Note that contents in the [sample directory](https://github.com/auino/cookidump/tree/master/sample_output) have been anonimized: due to copyrights of the original creators, full recipes details can not be shared.
-Nevertheless, the directory contains valuable information concerning the adopted data structures.
+When running again in the same path, it will only download the missing recipes.
 
-It follows the adopted anonimization command (based on [a post on StackOverflow](https://stackoverflow.com/questions/26281538/find-and-replace-for-json-with-sed-or-awk)]:
+### Other approaches ###
 
-```
-cat $FILE \
-| sed 's/\("id":"\)[^"]*\("\)/\1REPLACED_ID\2/g' \
-| sed 's/\("v1Id":"\)[^"]*\("\)/\1REPLACED_V1ID\2/g' \
-| sed 's/\("href":"\)[^"]*\("\)/\1REPLACED_HREF\2/g' \
-| sed 's/\("url":"\)[^"]*\("\)/\1REPLACED_URL\2/g' \
-| sed 's/\("image":"\)[^"]*\("\)/\1REPLACED_IMAGE\2/g' \
-| sed 's/\("imageUrl":"\)[^"]*\("\)/\1REPLACED_IMAGEURL\2/g' \
-| sed 's/\("locale":"\)[^"]*\("\)/\1REPLACED_LOCALE\2/g'
-```
+A different approach, previously adopted, is based on the retrieval of structured data on recipes.
+More information can be found at a [previous commit](https://github.com/auino/cookidump/tree/d9099ab2d6cd3834f9fbc13adad72cbc175dd8cd).
+Output is represented in this case in a different (structured) format, hence, it has to be interpreted. Such interpretation is not implemented in the linked previous commit.
 
 ### TODO ###
 
 * Parse downloaded recipes to store them on a database or to generate readable output files (e.g. HTML, PDF, etc.)
+* Make Chrome run headless for better speeds
+* Set up a dedicated container for the program
+
+### Disclaimer ###
+
+The authors of this program are not responsible of the usage of it.
+This program is released only for research and dissemination purposes.
+Also, the program provides users the ability to locally and temporarily store recipes accessible through a legit subscription.
+Before using this program, check Cookidoo subscription terms of service, according to the country related to the exploited subscription. 
+Sharing of the obtained recipes is not a legit activity and the authors of this program are not responsible of any illecit and sharing activity accomplished by the users.
 
 ### Contacts ###
 
