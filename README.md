@@ -53,7 +53,7 @@ When running again in the same path, it will only download the missing recipes.
 ### Other approaches ###
 
 A different approach, previously adopted, is based on the retrieval of structured data on recipes.
-More information can be found at a [previous commit](https://github.com/auino/cookidump/tree/d9099ab2d6cd3834f9fbc13adad72cbc175dd8cd).
+More information can be found on the [datastructure branch](https://github.com/auino/cookidump/tree/datastructure).
 Output is represented in this case in a different (structured) format, hence, it has to be interpreted. Such interpretation is not implemented in the linked previous commit.
 
 ### TODO ###
