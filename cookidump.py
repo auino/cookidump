@@ -6,27 +6,13 @@
 
 import os
 import io
+import sys
 import argparse
 import platform
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.common.action_chains import ActionChains
-
-#dir_separator = '/'
-#if str(platform.system()) == 'Windows': dir_separator = '\\'
-
-# def getIdsOfPage(browser, page):
-# 	"""Returns ids of recipes in page number as string list"""
-# 	browser.get('https://cookidoo.pt/search/pt-PT?context=recipes&countries=pt&page='+str(page))
-# 	elems = browser.find_elements_by_tag_name('core-tile')
-# 	if len(elems) > 0:
-# 		ids = []
-# 		for elem in elems:
-# 			ids.append(elem.get_attribute('id'))
-# 	else:
-# 		ids = []
-# 	return ids
 
 def getAllIds(browser, baseURL):
 	"""Returns ids of recipes in page number as string list"""
@@ -88,7 +74,7 @@ def recipeToFile(browser, id, baseDir, baseURL):
     with io.open(baseDir+id+'.html', 'w', encoding='utf-8') as f: f.write(html)
 
 #def appendToMarkdown(content, file):
-#    baseDir = os.getcwd() + dir_separator+'recipes'+dir_separator+'{}.md'.format(file)
+#    baseDir = '{0}{1}{2}{1}{3}.md'.format(os.getcwd(),dir_separator,outputdir,file))
 #    with io.open(baseDir, 'a', encoding='utf-8') as f: f.write(content + '\n')
 
 def getFiles(mypath):
@@ -96,6 +82,15 @@ def getFiles(mypath):
 	#mypath = os.getcwd() + dir_separator+'{}'+dir_separator.format(folder)
 	fileList = [f for f in os.listdir(mypath) if os.path.isfile(os.path.join(mypath, f))]
 	return fileList
+
+def getInput(prompText):
+	"""Makes a prompt in command line with the correct function call, Python v2 or v3"""
+	answer = ''
+	if sys.version_info[0] < 3:
+		answer = raw_input(prompText)
+	else:
+		answer = input(prompText)
+	return answer
 
 def isDownloaded(fileList, id):
 	try:
@@ -113,13 +108,15 @@ def run(webdriverfile, outputdir):
 	"""Scraps all recipes and stores them in html"""
 	print('[CD] Welcome to cookidump, starting things off...')
 
-	locale = str(raw_input('[CD] Complete the website domain: https://cookidoo.'))
-	baseURL = 'https://cookidoo.{}/'.format(locale)
+	# dir_separator = '/'
+	# if str(platform.system()) == 'Windows': dir_separator = '\\'
+
+	# locale = str(getInput('[CD] Complete the website domain: https://cookidoo.'))
+	# baseURL = 'https://cookidoo.{}/'.format(locale)
 
 	brw = startBrowser(webdriverfile)
 	idsTotal, idsDownloaded = [], [] 
-	#activeFolder = 'recipes'
-	#activePath = os.getcwd() + dir_separator+'{}'+dir_separator.format(activeFolder)
+	# activePath = '{0}{1}{2}{1}'.format(os.getcwd(), dir_separator, outputdir)
 
 	#login page
 	#brw.get('https://cookidoo.pt/foundation/pt-PT')
@@ -131,11 +128,11 @@ def run(webdriverfile, outputdir):
 
 	rbURL = getRecipeBaseURL(brw)
 
-	reply = raw_input('[CD] Please login to your account and then enter y to continue: ')
+	getInput('[CD] Please login to your account and then press enter to continue: ')
 	print('[CD] Proceeding with scraping')
 
 	#Creating necessary folder
-	#if not os.path.exists(activePath): os.makedirs(activePath)
+	# if not os.path.exists(activePath): os.makedirs(activePath)
 
 	#Fetching all the IDs
 	idsTotal = getAllIds(brw, baseURL)
@@ -168,6 +165,6 @@ def run(webdriverfile, outputdir):
 if  __name__ =='__main__':
 	parser = argparse.ArgumentParser(description='Dump Cookidoo recipes from a valid account')
 	parser.add_argument('webdriverfile', type=str, help='the path to the Chrome WebDriver file')
-	parser.add_argument('outputdir', type=str, help='the output directory')
+	parser.add_argument('outputdir', type=str, help='the output directory', default='recipes')
 	args = parser.parse_args()
 	run(args.webdriverfile, args.outputdir)
