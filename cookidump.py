@@ -104,19 +104,18 @@ def isDownloaded(fileList, id):
 		answer = False
 	return answer
 
-def run(webdriverfile, outputdir):
+def run(webdriverfile, outputdir, locale):
 	"""Scraps all recipes and stores them in html"""
 	print('[CD] Welcome to cookidump, starting things off...')
 
 	# dir_separator = '/'
 	# if str(platform.system()) == 'Windows': dir_separator = '\\'
 
-	# locale = str(getInput('[CD] Complete the website domain: https://cookidoo.'))
-	# baseURL = 'https://cookidoo.{}/'.format(locale)
+	baseURL = 'https://cookidoo.{}/'.format(locale)
+	print('[CD] Accessing {}'.format(baseURL))
 
 	brw = startBrowser(webdriverfile)
 	idsTotal, idsDownloaded = [], [] 
-	# activePath = '{0}{1}{2}{1}'.format(os.getcwd(), dir_separator, outputdir)
 
 	#login page
 	#brw.get('https://cookidoo.pt/foundation/pt-PT')
@@ -128,16 +127,17 @@ def run(webdriverfile, outputdir):
 
 	rbURL = getRecipeBaseURL(brw)
 
+	#TODO implement headless browser
 	getInput('[CD] Please login to your account and then press enter to continue: ')
 	print('[CD] Proceeding with scraping')
 
 	#Creating necessary folder
-	# if not os.path.exists(activePath): os.makedirs(activePath)
+	if not os.path.exists(outputdir): os.makedirs(outputdir)
 
 	#Fetching all the IDs
 	idsTotal = getAllIds(brw, baseURL)
 
-	#Writing all the IDs to a file
+	#Writing fetched IDs to a file
 	with open('ids.txt', 'w') as f: f.write(str(idsTotal))
 	print('[CD] Stored ids in ids.txt file')
 
@@ -163,8 +163,11 @@ def run(webdriverfile, outputdir):
 	brw.close()
 
 if  __name__ =='__main__':
-	parser = argparse.ArgumentParser(description='Dump Cookidoo recipes from a valid account')
+	exampleText = '''example:
+	python cookidump.py ./chromedriver /home/cooki/recipes it'''
+	parser = argparse.ArgumentParser(description='Dump Cookidoo recipes from a valid account', epilog=exampleText)
 	parser.add_argument('webdriverfile', type=str, help='the path to the Chrome WebDriver file')
-	parser.add_argument('outputdir', type=str, help='the output directory', default='recipes')
+	parser.add_argument('outputdir', type=str, help='the output directory')
+	parser.add_argument('locale', type=str, help='locale domain')
 	args = parser.parse_args()
-	run(args.webdriverfile, args.outputdir)
+	run(args.webdriverfile, args.outputdir, args.locale)
