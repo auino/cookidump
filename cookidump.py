@@ -7,6 +7,7 @@
 import os
 import io
 import sys
+import getpass
 import argparse
 import platform
 from selenium import webdriver
@@ -54,7 +55,7 @@ def startBrowser(chrome_driver_path):
     """Starts browser with predefined parameters"""
     #chrome_driver_path = 'chromedriver.exe'
     chrome_options = Options()
-    #chrome_options.add_argument('--headless')
+    chrome_options.add_argument('--headless')
     driver = webdriver.Chrome(executable_path=chrome_driver_path, chrome_options=chrome_options)
     return driver
 
@@ -67,19 +68,13 @@ def getRecipeBaseURL(browser):
 
 def recipeToFile(browser, id, baseDir, baseURL):
     """Gets html by recipe id and saves in html file"""
-	#TODO deal with locale URLs
     browser.get(baseURL+str(id))
     html = browser.page_source
-    #baseDir = os.getcwd()+dir_separator+'{}'+dir_separator.format(folder)
     with io.open(baseDir+id+'.html', 'w', encoding='utf-8') as f: f.write(html)
 
-#def appendToMarkdown(content, file):
-#    baseDir = '{0}{1}{2}{1}{3}.md'.format(os.getcwd(),dir_separator,outputdir,file))
-#    with io.open(baseDir, 'a', encoding='utf-8') as f: f.write(content + '\n')
-
 def getFiles(mypath):
+	"""Adds all the filenames inside a folder to a list"""
 	#https://stackoverflow.com/questions/3207219/how-do-i-list-all-files-of-a-directory
-	#mypath = os.getcwd() + dir_separator+'{}'+dir_separator.format(folder)
 	fileList = [f for f in os.listdir(mypath) if os.path.isfile(os.path.join(mypath, f))]
 	return fileList
 
@@ -91,6 +86,25 @@ def getInput(prompText):
 	else:
 		answer = input(prompText)
 	return answer
+
+def login(browser):
+	"""Logs in account with requested credentials"""
+	#Get all navbar links
+	elements = browser.find_elements_by_class_name('core-nav__link')
+	#Open last link for login
+	browser.get(elements[-1].get_attribute('href'))
+	print('[CD] Please fill in the login credentials')
+	#Find email textbox
+	elements=browser.find_element_by_name('j_username')
+	userEmail = getInput('[CD] Email: ')
+	#Type in email
+	elements.send_keys(userEmail)
+	#Find password textbox
+	elements=browser.find_element_by_name('j_password')
+	userPass = getpass.getpass('[CD] Password: ')
+	#Type in password
+	elements.send_keys(userPass)
+	elements.send_keys(Keys.RETURN)
 
 def isDownloaded(fileList, id):
 	try:
@@ -118,7 +132,6 @@ def run(webdriverfile, outputdir, locale):
 	idsTotal, idsDownloaded = [], [] 
 
 	#login page
-	#brw.get('https://cookidoo.pt/foundation/pt-PT')
 	brw.get(baseURL)
 
 	#TODO check if URL contains '/foundation/'
@@ -127,8 +140,7 @@ def run(webdriverfile, outputdir, locale):
 
 	rbURL = getRecipeBaseURL(brw)
 
-	#TODO implement headless browser
-	getInput('[CD] Please login to your account and then press enter to continue: ')
+	login(brw)
 	print('[CD] Proceeding with scraping')
 
 	#Creating necessary folder
