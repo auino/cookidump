@@ -10,6 +10,13 @@ In order to dump the recipes, a valid subscription is needed.
 
 The initial concept of this program was based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
 
+### Features ###
+
+* Easy to run
+* Easy to open HTML output
+* Output including a surfable list of dumped recipes
+* Customizable searches
+
 ### Installation ###
 
 
@@ -43,12 +50,21 @@ python cookidump.py <webdriverfile> <outputdir>
 
 where:
 * `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
-* `outputdir` identifies the path of the output directory
+* `outputdir` identifies the path of the output directory (will be created, if not already existent)
 
 The program will open a [Google Chrome](https://chrome.google.com) window and wait until you are logged in into your [Cookidoo](https://cookidoo.co.uk) account (different countries are supported).
-After that, press return in the command line and it will search for all recipes IDs and download them as HTML files.
 
-When running again in the same path, it will only download the missing recipes.
+After that, follow intructions provided by the script itself to proceed with the dump.
+
+#### Considerations ####
+
+By following script instructions, it is also possible to apply custom filters to export selected recipes (for instance, in base of the dish, title and ingredients, Thermomix/Bimby version, etc.).
+
+Output is represented by an `index.html` file, included in `outputdir`, plus a set of recipes inside of structured folders.
+By opening the generated `index.html` file on your browser, it is possible to have a list of recipes downloaded and surf to the desired recipe.
+
+The number of exported recipes is limited to around `1000` for each execution.
+Hence, use of filters may help in this case to reduce the number of recipes exported.
 
 ### Other approaches ###
 
@@ -58,7 +74,8 @@ Output is represented in this case in a different (structured) format, hence, it
 
 ### TODO ###
 
-* Parse downloaded recipes to store them on a database or to generate readable output files (e.g. HTML, PDF, etc.)
+* Bypass the limited number of exported recipes
+* Parse downloaded recipes to store them on a database, or to generate a unique linked PDF
 * Make Chrome run headless for better speeds
 * Set up a dedicated container for the program
 
