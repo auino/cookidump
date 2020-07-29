@@ -108,6 +108,8 @@ def run(webdriverfile, outputdir):
 		if count >= MAX_SCROLL_RETRIES: break
 		previousElements = currentElements
 
+	print("Scrolling ["+str(currentElements)+"/"+str(elementsToBeFound)+"]")
+
 	# saving all recipes urls
 	els = brw.find_elements_by_class_name('link--alt')
 	recipesURLs = []
@@ -127,6 +129,8 @@ def run(webdriverfile, outputdir):
 	listToFile(brw, outputdir)
 
 	# getting all recipes
+	print("Getting all recipes...")
+	c = 0
 	for recipeURL in recipesURLs:
 		try:
 			# building urls
@@ -145,6 +149,9 @@ def run(webdriverfile, outputdir):
 			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('page-header__home'), 'href', '../../index.html')
 			# saving the file
 			recipeToFile(brw, outputdir+'recipes/'+recipeID+'.html')
+			# printing information
+			c += 1
+			if c % 10 == 0: print("Dumped recipes: "+str(c)+"/"+str(len(recipesURLs)))
 		except: pass
 
 	# logging out
