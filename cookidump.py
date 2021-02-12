@@ -6,19 +6,23 @@
 
 import os
 import io
+import re
 import time
+import json
 import pathlib
 import argparse
 import platform
-from urllib.parse import urlparse
 from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+from urllib.parse import urlparse
+from urllib.request import urlretrieve
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from bs4 import BeautifulSoup
 
 PAGELOAD_TO = 3
 SCROLL_TO = 1
-MAX_SCROLL_RETRIES = 10
+MAX_SCROLL_RETRIES = 5
 
 def startBrowser(chrome_driver_path):
 	"""Starts browser with predefined parameters"""
@@ -39,6 +43,13 @@ def listToFile(browser, baseDir):
 	# saving the page
 	with io.open(filename, 'w', encoding='utf-8') as f: f.write(html)
 
+def imgToFile(outputdir, recipeID, img_url):
+	img_path = outputdir+'images/'+recipeID+'.jpg'
+	path = pathlib.Path(img_path)
+	path.parent.mkdir(parents=True, exist_ok=True)
+	urlretrieve(img_url, img_path)
+	return '../images/'+recipeID+'.jpg'
+
 def recipeToFile(browser, filename):
 	"""Gets html of the recipe and saves in html file"""
 	# creating directories, if needed
@@ -48,6 +59,19 @@ def recipeToFile(browser, filename):
 	html = browser.page_source
 	# saving the page
 	with io.open(filename, 'w', encoding='utf-8') as f: f.write(html)
+
+def recipeToJSON(browser, recipeID):
+	html = browser.page_source
+	soup = BeautifulSoup(html, 'html.parser')
+
+	recipe = {}
+	recipe['id'] = recipeID
+	recipe['title'] = soup.select_one(".recipe-card__title").text
+	recipe.update({ l.text : l.next_sibling.strip() for l in soup.select("core-feature-icons label span") })
+	recipe['ingredients'] = [re.sub(' +', ' ', li.text).replace('\n','').strip() for li in soup.select("#ingredients li")]
+	recipe['steps'] = [re.sub(' +', ' ', li.text).replace('\n','').strip() for li in soup.select("#preparation-steps li")]
+
+	return recipe
 
 def run(webdriverfile, outputdir):
 	"""Scraps all recipes and stores them in html"""
@@ -74,6 +98,10 @@ def run(webdriverfile, outputdir):
 
 	# possible filters done here
 	reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
+
+	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian ):")
+	if custom_output_dir : outputdir = outputdir + custom_output_dir+'/'
+
 
 	print('[CD] Proceeding with scraping')
 
@@ -128,11 +156,15 @@ def run(webdriverfile, outputdir):
 	# saving the list to file
 	listToFile(brw, outputdir)
 
+	# filter recipe Url list because it contains terms-of-use, privacy, disclaimer links too
+	recipesURLs = [l for l in recipesURLs if 'recipe' in l]
+
 	# getting all recipes
 	print("Getting all recipes...")
 	c = 0
+	recipeData = []
 	for recipeURL in recipesURLs:
-		try:
+		# try:
 			# building urls
 			u = str(urlparse(recipeURL).path)
 			if u[0] == '/': u = '.'+u
@@ -147,12 +179,31 @@ def run(webdriverfile, outputdir):
 			brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
 			# changing the top url
 			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('page-header__home'), 'href', '../../index.html')
+			
+			# saving image for recipe
+			img_url = brw.find_element_by_class_name('core-tile__image').get_attribute('src')
+			local_img_path = imgToFile(outputdir, recipeID, img_url)
+
+			# change the image url to local
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'srcset', '')
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'src', local_img_path)
+			
 			# saving the file
 			recipeToFile(brw, outputdir+'recipes/'+recipeID+'.html')
+
+			# extracting JSON info
+			recipe = recipeToJSON(brw, recipeID)
+			recipeData.append(recipe)
 			# printing information
 			c += 1
 			if c % 10 == 0: print("Dumped recipes: "+str(c)+"/"+str(len(recipesURLs)))
-		except: pass
+		# except: pass
+
+	# save json file
+	print("Writing recipes to JSON file")
+	with open(outputdir+'data.json', 'w') as outfile:
+		json.dump(recipeData, outfile)
+
 
 	# logging out
 	logoutURL = 'https://cookidoo.'+str(locale)+'/profile/logout'
