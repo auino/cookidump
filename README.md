@@ -79,6 +79,10 @@ Output is represented in this case in a different (structured) format, hence, it
 * Make Chrome run headless for better speeds
 * Set up a dedicated container for the program
 
+### Supporters ###
+
+* [@vikramsoni2](https://github.com/vikramsoni2), regarding JSON saves plus minor enhancements
+
 ### Disclaimer ###
 
 The authors of this program are not responsible of the usage of it.
