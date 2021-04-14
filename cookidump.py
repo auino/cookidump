@@ -114,13 +114,18 @@ def run(webdriverfile, outputdir):
         if custom_output_dir: outputdir = outputdir + custom_output_dir + '/'
         dumpSite(brw, outputdir)
     elif reply == "category":
+        categories = {}
         for category in brw.find_elements_by_class_name("core-tags-wrapper__tag"):
             if not category.get_property("href").endswith("recipes"):
-                print('[CD] Fetching category ' + category.text)
-                outdir = outputdir + category.text + '/'
-                brw.get(category.get_property("href"))
-                time.sleep(PAGELOAD_TO)
-                dumpSite(brw, outdir)
+                categories[category.text] = category.get_attribute("href")
+
+        for category in categories.keys():
+            print('[CD] Fetching category ' + category)
+            outdir = outputdir + category + '/'
+            brw.get(categories.get(category))
+            time.sleep(PAGELOAD_TO)
+
+            dumpSite(brw, outdir)
 
     # logging out
     logoutURL = 'https://cookidoo.' + str(locale) + '/profile/logout'
