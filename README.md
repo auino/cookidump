@@ -45,12 +45,15 @@ pip install -r requirements.txt
 Simply run the following command to start the program. The program is interactive to simplify it's usage.
 
 ```
-python cookidump.py <webdriverfile> <outputdir>
+python cookidump.py [--separate-json false] <webdriverfile> <outputdir>
 ```
 
 where:
 * `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
 * `outputdir` identifies the path of the output directory (will be created, if not already existent)
+
+optional arguments:
+* `--separate-json` (default: false) allows to generate json files for each recipe instead of one aggregate file
 
 The program will open a [Google Chrome](https://chrome.google.com) window and wait until you are logged in into your [Cookidoo](https://cookidoo.co.uk) account (different countries are supported).
 
