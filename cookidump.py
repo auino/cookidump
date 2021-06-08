@@ -82,7 +82,7 @@ def recipeToJSON(browser, recipeID):
 
 	return recipe
 
-def run(webdriverfile, outputdir):
+def run(webdriverfile, outputdir, separate_json):
 	"""Scraps all recipes and stores them in html"""
 	print('[CD] Welcome to cookidump, starting things off...')
 	# fixing the outputdir parameter, if needed
@@ -201,15 +201,23 @@ def run(webdriverfile, outputdir):
 
 			# extracting JSON info
 			recipe = recipeToJSON(brw, recipeID)
-			recipeData.append(recipe)
+
+			# saving JSON file, if needed
+			if separate_json:
+				print('[CD] Writing recipe to JSON file')
+				with open('{}recipes/{}.json'.format(outputdir, recipeID), 'w') as outfile: json.dump(recipe, outfile)
+			else:
+				recipeData.append(recipe)
+
 			# printing information
 			c += 1
 			if c % 10 == 0: print('Dumped recipes: {}/{}'.format(c, len(recipesURLs)))
 		except: pass
 
-	# save json file
-	print("Writing recipes to JSON file")
-	with open(outputdir+'data.json', 'w') as outfile: json.dump(recipeData, outfile)
+	# save JSON file, if needed
+	if not separate_json:
+		print('[CD] Writing recipes to JSON file')
+		with open('{}data.json'.format(outputdir), 'w') as outfile: json.dump(recipeData, outfile)
 
 	# logging out
 	logoutURL = 'https://cookidoo.{}/profile/logout'.format(locale)
@@ -224,5 +232,6 @@ if  __name__ =='__main__':
 	parser = argparse.ArgumentParser(description='Dump Cookidoo recipes from a valid account')
 	parser.add_argument('webdriverfile', type=str, help='the path to the Chrome WebDriver file')
 	parser.add_argument('outputdir', type=str, help='the output directory')
+	parser.add_argument('-s', '--separate-json', action='store_true', help='Create a separate JSON file for each recipe; otherwise, a single data file will be generated')
 	args = parser.parse_args()
-	run(args.webdriverfile, args.outputdir)
+	run(args.webdriverfile, args.outputdir, parser.separate_json)
