@@ -33,7 +33,7 @@ def startBrowser(chrome_driver_path):
 
 def listToFile(browser, baseDir):
 	"""Gets html from search list and saves in html file"""
-	filename = baseDir+'index.html'
+	filename = '{}index.html'.format(baseDir)
 	# creating directories, if needed
 	path = pathlib.Path(filename)
 	path.parent.mkdir(parents=True, exist_ok=True)
@@ -44,11 +44,11 @@ def listToFile(browser, baseDir):
 	with io.open(filename, 'w', encoding='utf-8') as f: f.write(html)
 
 def imgToFile(outputdir, recipeID, img_url):
-	img_path = outputdir+'images/'+recipeID+'.jpg'
+	img_path = '{}images/{}.jpg'.format(outputdir, recipeID)
 	path = pathlib.Path(img_path)
 	path.parent.mkdir(parents=True, exist_ok=True)
 	urlretrieve(img_url, img_path)
-	return '../images/'+recipeID+'.jpg'
+	return '../images/{}.jpg'.format(recipeID)
 
 def recipeToFile(browser, filename):
 	"""Gets html of the recipe and saves in html file"""
@@ -66,10 +66,19 @@ def recipeToJSON(browser, recipeID):
 
 	recipe = {}
 	recipe['id'] = recipeID
+	recipe['language'] = soup.select_one('html').attrs['lang']
 	recipe['title'] = soup.select_one(".recipe-card__title").text
+	recipe['rating_count'] = re.sub(r'\D', '', soup.select_one(".core-rating__label").text, flags=re.IGNORECASE)
+	recipe['rating_score'] = soup.select_one(".core-rating__counter").text
+	recipe['tm-versions'] = [v.text.replace('\n','').strip().lower() for v in soup.select(".recipe-card__tm-version core-badge")]
 	recipe.update({ l.text : l.next_sibling.strip() for l in soup.select("core-feature-icons label span") })
 	recipe['ingredients'] = [re.sub(' +', ' ', li.text).replace('\n','').strip() for li in soup.select("#ingredients li")]
+	recipe['nutritions'] = {}
+	for item in list(zip(soup.select(".nutritions dl")[0].find_all("dt"), soup.select(".nutritions dl")[0].find_all("dd"))):
+		dt, dl = item
+		recipe['nutritions'].update({ dt.string.replace('\n','').strip().lower(): re.sub(r'\s{2,}', ' ', dl.string.replace('\n','').strip().lower()) })
 	recipe['steps'] = [re.sub(' +', ' ', li.text).replace('\n','').strip() for li in soup.select("#preparation-steps li")]
+	recipe['tags'] = [a.text.replace('#','').replace('\n','').strip().lower() for a in soup.select(".core-tags-wrapper__tags-container a")]
 
 	return recipe
 
@@ -91,7 +100,7 @@ def run(webdriverfile, outputdir):
 	reply = input('[CD] Please login to your account and then enter y to continue: ')
 
 	# recipes base url
-	rbURL = 'https://cookidoo.'+str(locale)+'/search/'
+	rbURL = 'https://cookidoo.{}/search/'.format(locale)
 
 	brw.get(rbURL)
 	time.sleep(PAGELOAD_TO)
@@ -100,8 +109,7 @@ def run(webdriverfile, outputdir):
 	reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
 
 	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian ):")
-	if custom_output_dir : outputdir = outputdir + custom_output_dir+'/'
-
+	if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
 
 	print('[CD] Proceeding with scraping')
 
@@ -130,13 +138,13 @@ def run(webdriverfile, outputdir):
 			brw.find_element_by_id('load-more-page').click()
 			time.sleep(PAGELOAD_TO)
 		except: pass
-		print("Scrolling ["+str(currentElements)+"/"+str(elementsToBeFound)+"]")
+		print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
 		# checking if I can't load more elements
 		count = count + 1 if previousElements == currentElements else 0
 		if count >= MAX_SCROLL_RETRIES: break
 		previousElements = currentElements
 
-	print("Scrolling ["+str(currentElements)+"/"+str(elementsToBeFound)+"]")
+	print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
 
 	# saving all recipes urls
 	els = brw.find_elements_by_class_name('link--alt')
@@ -145,7 +153,7 @@ def run(webdriverfile, outputdir):
 		recipeURL = el.get_attribute('href')
 		recipesURLs.append(recipeURL)
 		recipeID = recipeURL.split('/')[-1:][0]
-		brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/'+recipeID+'.html')
+		brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
 
 	# removing search bar
 	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-bar'))
@@ -164,7 +172,7 @@ def run(webdriverfile, outputdir):
 	c = 0
 	recipeData = []
 	for recipeURL in recipesURLs:
-		# try:
+		try:
 			# building urls
 			u = str(urlparse(recipeURL).path)
 			if u[0] == '/': u = '.'+u
@@ -189,24 +197,22 @@ def run(webdriverfile, outputdir):
 			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'src', local_img_path)
 			
 			# saving the file
-			recipeToFile(brw, outputdir+'recipes/'+recipeID+'.html')
+			recipeToFile(brw, '{}recipes/{}.html'.format(outputdir, recipeID))
 
 			# extracting JSON info
 			recipe = recipeToJSON(brw, recipeID)
 			recipeData.append(recipe)
 			# printing information
 			c += 1
-			if c % 10 == 0: print("Dumped recipes: "+str(c)+"/"+str(len(recipesURLs)))
-		# except: pass
+			if c % 10 == 0: print('Dumped recipes: {}/{}'.format(c, len(recipesURLs)))
+		except: pass
 
 	# save json file
 	print("Writing recipes to JSON file")
-	with open(outputdir+'data.json', 'w') as outfile:
-		json.dump(recipeData, outfile)
-
+	with open(outputdir+'data.json', 'w') as outfile: json.dump(recipeData, outfile)
 
 	# logging out
-	logoutURL = 'https://cookidoo.'+str(locale)+'/profile/logout'
+	logoutURL = 'https://cookidoo.{}/profile/logout'.format(locale)
 	brw.get(logoutURL)
 	time.sleep(PAGELOAD_TO)
 	

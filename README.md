@@ -82,6 +82,7 @@ Output is represented in this case in a different (structured) format, hence, it
 ### Supporters ###
 
 * [@vikramsoni2](https://github.com/vikramsoni2), regarding JSON saves plus minor enhancements
+* [@mrwogu](https://github.com/mrwogu), regarding additional information to be extracted on the generated JSON file
 
 ### Disclaimer ###
 
