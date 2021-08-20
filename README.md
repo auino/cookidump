@@ -84,6 +84,7 @@ Output is represented in this case in a different (structured) format, hence, it
 
 * [@vikramsoni2](https://github.com/vikramsoni2), regarding JSON saves plus minor enhancements
 * [@mrwogu](https://github.com/mrwogu), regarding additional information to be extracted on the generated JSON file, plus suggestions on the possibility to save recipes on dedicated JSON files
+* [NilsKrause](https://github.com/NilsKrause), regarding argument parsing and updates on the link to download the Chrome WebDriver
 
 ### Disclaimer ###
 
