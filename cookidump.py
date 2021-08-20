@@ -234,4 +234,4 @@ if  __name__ =='__main__':
 	parser.add_argument('outputdir', type=str, help='the output directory')
 	parser.add_argument('-s', '--separate-json', action='store_true', help='Create a separate JSON file for each recipe; otherwise, a single data file will be generated')
 	args = parser.parse_args()
-	run(args.webdriverfile, args.outputdir, parser.separate_json)
+	run(args.webdriverfile, args.outputdir, args.separate_json)

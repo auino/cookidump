@@ -36,7 +36,7 @@ pip install -r requirements.txt
 
 4. Install the [Google Chrome](https://chrome.google.com) browser, if not already installed
 
-5. Download the [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) and save it on the `cookidump` folder
+5. Download the [Chrome WebDriver](https://sites.google.com/chromium.org/driver/) and save it on the `cookidump` folder
 
 6. You are ready to dump your recipes
 
@@ -49,7 +49,7 @@ python cookidump.py [--separate-json] <webdriverfile> <outputdir>
 ```
 
 where:
-* `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/a/chromium.org/chromedriver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
+* `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/chromium.org/driver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
 * `outputdir` identifies the path of the output directory (will be created, if not already existent)
 * `--separate-json` allows to generate a separate JSON file for each recipe, instead of one aggregate file including all recipes
 
