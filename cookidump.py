@@ -108,7 +108,7 @@ def run(webdriverfile, outputdir, separate_json):
 	# possible filters done here
 	reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
 
-	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian ):")
+	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
 	if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
 
 	print('[CD] Proceeding with scraping')
