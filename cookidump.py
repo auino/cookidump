@@ -188,8 +188,8 @@ def run(webdriverfile, outputdir, separate_json):
 			# changing the top url
 			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('page-header__home'), 'href', '../../index.html')
 			
-			# saving image for recipe
-			img_url = brw.find_element_by_class_name('core-tile__image').get_attribute('src')
+			# saving recipe image
+			img_url = brw.find_element_by_id('recipe-card__image-loader').find_element_by_tag_name('img').get_attribute('src')
 			local_img_path = imgToFile(outputdir, recipeID, img_url)
 
 			# change the image url to local
