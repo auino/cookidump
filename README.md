@@ -30,6 +30,8 @@ abstract = {In the web security field, data dumping activities are often related
 }
 ```
 
+Further information can be found at [https://www.sciencedirect.com/science/article/pii/S2665963822001105](https://www.sciencedirect.com/science/article/pii/S2665963822001105).
+
 ### Features ###
 
 * Easy to run
