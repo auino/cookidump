@@ -10,6 +10,26 @@ In order to dump the recipes, a valid subscription is needed.
 
 The initial concept of this program was based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
 
+### Mentioning ###
+
+If you intend to scientifically investigate or extend cookidump, please consider citing the following paper.
+
+```
+@article{cambiaso2022cookidump,
+title = {Web security and data dumping: The Cookidump case},
+journal = {Software Impacts},
+volume = {14},
+pages = {100426},
+year = {2022},
+issn = {2665-9638},
+doi = {https://doi.org/10.1016/j.simpa.2022.100426},
+url = {https://www.sciencedirect.com/science/article/pii/S2665963822001105},
+author = {Enrico Cambiaso and Maurizio Aiello},
+keywords = {Cyber-security, Data dump, Database security, Browser automation},
+abstract = {In the web security field, data dumping activities are often related to a malicious exploitation. In this paper, we focus on data dumping activities executed legitimately by scraping/storing data shown on the browser. We evaluate such operation by proposing Cookidump, a tool able to dump all recipes available on the Cookidoo© website portal. While such scenario is not relevant, in terms of security and privacy, we discuss the impact of such kind of activity for other scenarios including web applications hosting sensitive information.}
+}
+```
+
 ### Features ###
 
 * Easy to run
