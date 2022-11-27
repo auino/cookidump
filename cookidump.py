@@ -27,6 +27,8 @@ MAX_SCROLL_RETRIES = 5
 def startBrowser(chrome_driver_path):
 	"""Starts browser with predefined parameters"""
 	chrome_options = Options()
+	if "GOOGLE_CHROME_PATH" in os.environ:
+		chrome_options.binary_location = os.getenv('GOOGLE_CHROME_PATH')
 	#chrome_options.add_argument('--headless')
 	driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
 	return driver
