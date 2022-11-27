@@ -41,6 +41,16 @@ Further information can be found at [https://www.sciencedirect.com/science/artic
 
 ### Installation ###
 
+#### nix ####
+
+```
+nix run github:auino/cookidump -- <outputdir> [--separate-json]
+```
+
+Nix provisions `google-chrome` together with `chromedriver` only 
+`<outputdir>` and `[--separate-json]` arguments are expected.
+
+#### manual ####
 
 1. Clone the repository:
 
