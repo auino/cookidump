@@ -47,7 +47,7 @@ Further information can be found at [https://www.sciencedirect.com/science/artic
 nix run github:auino/cookidump -- <outputdir> [--separate-json]
 ```
 
-Nix provisions `google-chrome` together with `chromedriver` only 
+Nix provisions `google-chrome` together with `chromedriver`. Only 
 `<outputdir>` and `[--separate-json]` arguments are expected.
 
 #### manual ####
