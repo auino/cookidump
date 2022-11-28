@@ -18,6 +18,7 @@ from urllib.request import urlretrieve
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.support.ui import WebDriverWait
 from bs4 import BeautifulSoup
 
 PAGELOAD_TO = 3
@@ -100,126 +101,190 @@ def run(webdriverfile, outputdir, separate_json):
 	time.sleep(PAGELOAD_TO)
 
 	reply = input('[CD] Please login to your account and then enter y to continue: ')
+	
+	base_outputdir=outputdir
 
-	# recipes base url
-	rbURL = 'https://cookidoo.{}/search/'.format(locale)
-
-	brw.get(rbURL)
-	time.sleep(PAGELOAD_TO)
-
-	# possible filters done here
-	reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
-
-	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
-	if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
-
-	print('[CD] Proceeding with scraping')
-
-	# removing the base href header
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
-
-	# removing the name
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
-
-	# clicking on cookie accept
-	try: brw.find_element_by_class_name('accept-cookie-container').click()
-	except: pass
-
-	# showing all recipes
-	elementsToBeFound = int(brw.find_element_by_class_name('search-results-count__hits').get_attribute('innerHTML'))
-	previousElements = 0
 	while True:
-		# checking if ended or not
-		currentElements = len(brw.find_elements_by_class_name('link--alt'))
-		if currentElements >= elementsToBeFound: break
-		# scrolling to the end
-		brw.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-		time.sleep(SCROLL_TO)
-		# clicking on the "load more recipes" button
-		try:
-			brw.find_element_by_id('load-more-page').click()
-			time.sleep(PAGELOAD_TO)
+		# recipes base url
+		rbURL = 'https://cookidoo.{}/search/'.format(locale)
+
+		brw.get(rbURL)
+		time.sleep(PAGELOAD_TO)
+
+		# possible filters done here
+		reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
+		
+		outputdir = base_outputdir
+		custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
+		if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
+
+		print('[CD] Proceeding with scraping')
+
+		# clicking on cookie accept
+		try: brw.find_element_by_class_name('accept-cookie-container').click()
 		except: pass
-		print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
-		# checking if I can't load more elements
-		count = count + 1 if previousElements == currentElements else 0
-		if count >= MAX_SCROLL_RETRIES: break
-		previousElements = currentElements
 
-	print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
-
-	# saving all recipes urls
-	els = brw.find_elements_by_class_name('link--alt')
-	recipesURLs = []
-	for el in els:
-		recipeURL = el.get_attribute('href')
-		recipesURLs.append(recipeURL)
-		recipeID = recipeURL.split('/')[-1:][0]
-		brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
-
-	# removing search bar
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-bar'))
-
-	# removing scripts
-	for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
-
-	# saving the list to file
-	listToFile(brw, outputdir)
-
-	# filter recipe Url list because it contains terms-of-use, privacy, disclaimer links too
-	recipesURLs = [l for l in recipesURLs if 'recipe' in l]
-
-	# getting all recipes
-	print("Getting all recipes...")
-	c = 0
-	recipeData = []
-	for recipeURL in recipesURLs:
-		try:
-			# building urls
-			u = str(urlparse(recipeURL).path)
-			if u[0] == '/': u = '.'+u
-			recipeID = u.split('/')[-1:][0]
-			# opening recipe url
-			brw.get(recipeURL)
-			time.sleep(PAGELOAD_TO)
-			# removing the base href header
-			try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
+		# showing all recipes
+		elementsToBeFound = int(brw.find_element_by_class_name('search-results-count__hits').get_attribute('innerHTML'))
+		previousElements = 0
+		count=0
+		while True:
+			# checking if ended or not
+			currentElements = len(brw.find_elements_by_class_name('core-tile--expanded'))
+			if currentElements >= elementsToBeFound: break
+			# scrolling to the end
+			brw.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+			time.sleep(SCROLL_TO)
+			# clicking on the "load more recipes" button
+			try:
+				brw.find_element_by_id('load-more-page').click()
+				time.sleep(PAGELOAD_TO)
 			except: pass
-			# removing the name
-			brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
-			# changing the top url
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('page-header__home'), 'href', '../../index.html')
+			print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
+			# checking if I can't load more elements
+			count = count + 1 if previousElements == currentElements else 0
+			if count >= MAX_SCROLL_RETRIES: break
+			previousElements = currentElements
+		
+		print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
+
+		# Cleanup
+		for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_class_name('page-header'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_class_name('l-content'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_class_name('keyboard-container'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('filter-button'))
+		for s in brw.find_elements_by_tag_name('sort-by'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('filter-modal'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-toast'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-algolia'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-infinite-scroll'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-footer'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-tos-privacy-update'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-feedback')) 
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('onetrust-consent-sdk'))
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('onetrust-style'))  
+		for s in brw.find_elements_by_tag_name('core-context-menu'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+		for s in brw.find_elements_by_tag_name('core-error-page'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+		for s in brw.find_elements_by_tag_name('noscript'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+
+		for s in brw.find_elements_by_tag_name('img'):
+			brw.execute_script("arguments[0].removeAttribute(arguments[1]);", s, 'srcset')
+			brw.execute_script("arguments[0].removeAttribute(arguments[1]);", s, 'sizes')
+			brw.execute_script("arguments[0].setAttribute(arguments[1],arguments[2]);", s, 'style','max-width:100%;')
+		brw.execute_script('var element=document.querySelector("link[rel=\'icon\']");element.parentNode.removeChild(element);')
+		brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
+
+		brw.execute_script('var element=document.getElementsByTagName("link")[2];element.parentNode.removeChild(element);')
+		brw.execute_script('var element=document.getElementsByTagName("link")[1];element.parentNode.removeChild(element);')
+		brw.execute_script('var element=document.getElementsByTagName("link")[0];element.parentNode.removeChild(element);')
+
+		#local css - DISABLED
+		#brw.execute_script('var element=document.getElementsByTagName("link")[0];element.setAttribute(arguments[0], arguments[1]);','href','css/pl-core-20.36.0.css')
+		#brw.execute_script('var element=document.getElementsByTagName("link")[1];element.setAttribute(arguments[0], arguments[1]);','href','css/styles.css')   
+
+		# saving all recipes urls
+		els = brw.find_elements_by_class_name('link--alt')
+		recipesURLs = []
+		for el in els:
+			recipeURL = el.get_attribute('href')
+			recipesURLs.append(recipeURL)
+			recipeID = recipeURL.split('/')[-1:][0]
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el.find_element_by_tag_name('img'), 'src','images/{}.jpg'.format(recipeID))
 			
-			# saving recipe image
-			img_url = brw.find_element_by_id('recipe-card__image-loader').find_element_by_tag_name('img').get_attribute('src')
-			local_img_path = imgToFile(outputdir, recipeID, img_url)
+		# saving the list to file
+		listToFile(brw, outputdir)
 
-			# change the image url to local
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'srcset', '')
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'src', local_img_path)
+		# filter recipe Url list because it contains terms-of-use, privacy, disclaimer links too
+		recipesURLs = [l for l in recipesURLs if 'recipe' in l]
+
+		# getting all recipes
+		print("Getting all recipes...")
+		c = 0
+		recipeData = []
+		for recipeURL in recipesURLs:
+			try:
+				# building urls
+				u = str(urlparse(recipeURL).path)
+				if u[0] == '/': u = '.'+u
+				recipeID = u.split('/')[-1:][0]
+				# opening recipe url
+				brw.get(recipeURL)
+				#Wait for page to load
+				WebDriverWait(brw, PAGELOAD_TO).until(lambda driver: brw.execute_script('return document.readyState') == 'complete')
+				# cleanup
+				for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+				for s in brw.find_elements_by_tag_name('recipe-banner'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+				for s in brw.find_elements_by_tag_name('core-modal'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+				for s in brw.find_elements_by_tag_name('core-tooltip'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-toast'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-tos-privacy-update'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-feedback')) 
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-lazy-loading')) 
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-footer'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('recipe-cr-promo-banner'))    
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('recipe-scrollspy'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_class_name('page-header'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_class_name('recipe-card__btn-line'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('alternative-recipes'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('nutritions-mobile'))
+				try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('in-collections'))
+				except: pass
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('core-share'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('onetrust-style'))
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_id('onetrust-consent-sdk'))
+
+				for s in brw.find_elements_by_class_name('core-action-list__item'): brw.execute_script("arguments[0].removeAttribute('href');", s)
+				for s in brw.find_elements_by_class_name('core-badge--high'): brw.execute_script("arguments[0].removeAttribute('href');", s)   
+				for s in brw.find_elements_by_tag_name('core-fetch-modal'): brw.execute_script("arguments[0].removeAttribute('href');", s)     
+
+				brw.execute_script("arguments[0].removeAttribute(arguments[1]);", brw.find_element_by_tag_name('img'), 'srcset')
+				brw.execute_script("arguments[0].removeAttribute(arguments[1]);", brw.find_element_by_tag_name('img'), 'sizes')
+				brw.execute_script("arguments[0].setAttribute(arguments[1],arguments[2]);", brw.find_element_by_tag_name('img'), 'style','max-width:100%;')
+
+				brw.execute_script('document.getElementsByClassName("l-header-offset-small")[0].classList.remove("l-header-offset-small");')   
+				brw.execute_script('var element=document.querySelector("link[rel=\'icon\']");element.parentNode.removeChild(element);')
+
+				#local css - DISABLED
+				#brw.execute_script('var element=document.getElementsByTagName("link")[0];element.setAttribute(arguments[0], arguments[1]);','href','../css/pl-core-20.36.0.css')
+				#brw.execute_script('var element=document.getElementsByTagName("link")[1];element.setAttribute(arguments[0], arguments[1]);','href','../css/bundle.css')
+				#brw.execute_script('var element=document.getElementsByTagName("link")[2];element.parentNode.removeChild(element);')
+
+
+				# saving recipe image
+				img_url = brw.find_element_by_tag_name('img').get_attribute('src')
+				local_img_path = imgToFile(outputdir, recipeID, img_url)
+
+				# change the image url to local
+				brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_tag_name('img') , 'src', local_img_path)
+				
+				# saving the file
+				recipeToFile(brw, '{}recipes/{}.html'.format(outputdir, recipeID))
+
+				# extracting JSON info
+				recipe = recipeToJSON(brw, recipeID)
+
+				# saving JSON file, if needed
+				if separate_json:
+					print('[CD] Writing recipe to JSON file')
+					with open('{}recipes/{}.json'.format(outputdir, recipeID), 'w') as outfile: json.dump(recipe, outfile)
+				else:
+					recipeData.append(recipe)
+
+				# printing information
+				c += 1
+				if c % 10 == 0: print('Dumped recipes: {}/{}'.format(c, len(recipesURLs)))
+			except: pass
+
+		# save JSON file, if needed
+		if not separate_json:
+			print('[CD] Writing recipes to JSON file')
+			with open('{}data.json'.format(outputdir), 'w') as outfile: json.dump(recipeData, outfile)
 			
-			# saving the file
-			recipeToFile(brw, '{}recipes/{}.html'.format(outputdir, recipeID))
-
-			# extracting JSON info
-			recipe = recipeToJSON(brw, recipeID)
-
-			# saving JSON file, if needed
-			if separate_json:
-				print('[CD] Writing recipe to JSON file')
-				with open('{}recipes/{}.json'.format(outputdir, recipeID), 'w') as outfile: json.dump(recipe, outfile)
-			else:
-				recipeData.append(recipe)
-
-			# printing information
-			c += 1
-			if c % 10 == 0: print('Dumped recipes: {}/{}'.format(c, len(recipesURLs)))
-		except: pass
-
-	# save JSON file, if needed
-	if not separate_json:
-		print('[CD] Writing recipes to JSON file')
-		with open('{}data.json'.format(outputdir), 'w') as outfile: json.dump(recipeData, outfile)
+		reply = input('[CD] Enter x to exit, y for more: ')
+		if reply == 'x' : break
 
 	# logging out
 	logoutURL = 'https://cookidoo.{}/profile/logout'.format(locale)

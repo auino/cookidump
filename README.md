@@ -2,6 +2,13 @@
 
 Easily dump cookidoo recipes from the official website
 
+## **Changes in this fork** ##
+* **Recipe and index cleanup up to 11**
+* **Faster recipe loading** (wait for completion intead of sleep timer)
+* **Multiple filter scrapping in one session**
+* **Images in index same as in recipe** (local copy)
+* **Local copy of css files** (commmented out)
+  
 ### Description ###
 
 This program allows you to dump all recipes on [Cookidoo](https://cookidoo.co.uk) websites (available for different countries) for offline and posticipate reading.
