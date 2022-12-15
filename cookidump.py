@@ -33,9 +33,9 @@ def startBrowser(chrome_driver_path):
 	driver = webdriver.Chrome(executable_path=chrome_driver_path, options=chrome_options)
 	return driver
 
-def listToFile(browser, baseDir):
+def listToFile(browser, baseDir, filename = 'index'):
 	"""Gets html from search list and saves in html file"""
-	filename = '{}index.html'.format(baseDir)
+	filename = '{}'.format(baseDir) + filename + '.html'
 	# creating directories, if needed
 	path = pathlib.Path(filename)
 	path.parent.mkdir(parents=True, exist_ok=True)
@@ -93,7 +93,11 @@ def run(webdriverfile, outputdir, separate_json):
 	locale = str(input('[CD] Complete the website domain: https://cookidoo.'))
 	baseURL = 'https://cookidoo.{}/'.format(locale)
 
+	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
+	if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
+
 	brw = startBrowser(webdriverfile)
+	brw.set_window_size(750,1250)
 
 	# opening the home page
 	brw.get(baseURL)
@@ -104,70 +108,132 @@ def run(webdriverfile, outputdir, separate_json):
 	# recipes base url
 	rbURL = 'https://cookidoo.{}/search/'.format(locale)
 
+	print('[CD] Counting filters')
+	# count filters
 	brw.get(rbURL)
 	time.sleep(PAGELOAD_TO)
 
-	# possible filters done here
-	reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
+	# open filter menue
+	brw.find_element_by_class_name('filter-button').click()
+	time.sleep(1)
+	brw.find_element_by_class_name('multi-select__label.multi-select__label--collapsed').click()
+	time.sleep(1)
 
-	custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
-	if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
+	filtercounter = []
+	for i in range(99):
+		try:
+			label = '//label[@for="category-VrkNavCategory-RPF-' + str(i).rjust(3, '0') + '"]'
+			# print(label)
+			if len(brw.find_elements_by_xpath(label)) > 0:
+				filtercounter.append(label)
+		except:
+			pass
+
+	subfiltercounter = []
+	subfiltercounter.append('//label[@for="easy"]')
+	subfiltercounter.append('//label[@for="medium"]')
+	subfiltercounter.append('//label[@for="advanced"]')
+	print('[CD] Found ' + str(len(filtercounter)*len(subfiltercounter)) + ' filters')
 
 	print('[CD] Proceeding with scraping')
-
-	# removing the base href header
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
-
-	# removing the name
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
-
-	# clicking on cookie accept
-	try: brw.find_element_by_class_name('accept-cookie-container').click()
-	except: pass
-
-	# showing all recipes
-	elementsToBeFound = int(brw.find_element_by_class_name('search-results-count__hits').get_attribute('innerHTML'))
-	previousElements = 0
-	while True:
-		# checking if ended or not
-		currentElements = len(brw.find_elements_by_class_name('link--alt'))
-		if currentElements >= elementsToBeFound: break
-		# scrolling to the end
-		brw.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-		time.sleep(SCROLL_TO)
-		# clicking on the "load more recipes" button
-		try:
-			brw.find_element_by_id('load-more-page').click()
-			time.sleep(PAGELOAD_TO)
-		except: pass
-		print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
-		# checking if I can't load more elements
-		count = count + 1 if previousElements == currentElements else 0
-		if count >= MAX_SCROLL_RETRIES: break
-		previousElements = currentElements
-
-	print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
-
-	# saving all recipes urls
-	els = brw.find_elements_by_class_name('link--alt')
 	recipesURLs = []
-	for el in els:
-		recipeURL = el.get_attribute('href')
-		recipesURLs.append(recipeURL)
-		recipeID = recipeURL.split('/')[-1:][0]
-		brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
+	counter = 0
+	for filter in filtercounter:
+		for subfilter in subfiltercounter:
+			counter += 1
+			print('[CD] Stored URLS: ' + str(len(recipesURLs)))
+			print('[CD] Filter [' + str(counter) + "/" + str(len(filtercounter)*len(subfiltercounter)) + "]")
+			brw.get(rbURL)
+			time.sleep(PAGELOAD_TO)
 
-	# removing search bar
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-bar'))
+			# open filter menue
+			brw.find_element_by_class_name('filter-button').click()
+			time.sleep(1)
+			brw.find_element_by_class_name('multi-select__label.multi-select__label--collapsed').click()
+			time.sleep(1)
 
-	# removing scripts
-	for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+			# chose a filter
+			scrollcounter = 100
+			while True:
+				try:
+					brw.find_element_by_xpath(filter).click()
+					break;
+				except: 
+					brw.execute_script("window.scrollTo(0, " + str(scrollcounter) + ");")
+					scrollcounter += 100
+			time.sleep(1)
+			scrollcounter = 100
+			while True:
+				try:
+					brw.find_element_by_xpath(subfilter).click()
+					break;
+				except: 
+					brw.execute_script("window.scrollTo(0, " + str(scrollcounter) + ");")
+					scrollcounter += 100
+			time.sleep(1)
+			brw.find_element_by_class_name('core-modal__submit.button--primary').click()
+			time.sleep(1)
+			
 
-	# saving the list to file
-	listToFile(brw, outputdir)
+			# removing the base href header
+			try:
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
+			except: pass
+			# removing the name
+			try:
+				brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
+			except: pass
+			# clicking on cookie accept
+			try: brw.find_element_by_class_name('accept-cookie-container').click()
+			except: pass
 
-	# filter recipe Url list because it contains terms-of-use, privacy, disclaimer links too
-	recipesURLs = [l for l in recipesURLs if 'recipe' in l]
+			# showing all recipes
+			try:
+				elementsToBeFound = int(brw.find_element_by_class_name('search-results-count__hits').get_attribute('innerHTML'))
+			except:
+				elementsToBeFound = 0
+			previousElements = 0
+			while True:
+				# checking if ended or not
+				currentElements = len(brw.find_elements_by_class_name('link--alt'))
+				if currentElements >= elementsToBeFound: break
+				# scrolling to the end
+				brw.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+				time.sleep(SCROLL_TO)
+				# clicking on the "load more recipes" button
+				try:
+					brw.find_element_by_id('load-more-page').click()
+					time.sleep(PAGELOAD_TO)
+				except: pass
+				print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
+				# checking if I can't load more elements
+				count = count + 1 if previousElements == currentElements else 0
+				if count >= MAX_SCROLL_RETRIES: break
+				previousElements = currentElements
+
+			print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
+
+			# saving all recipes urls
+			els = brw.find_elements_by_class_name('link--alt')
+			# recipesURLs = []
+			for el in els:
+				recipeURL = el.get_attribute('href')
+				if not recipeURL in recipesURLs:
+					recipesURLs.append(recipeURL)
+				recipeID = recipeURL.split('/')[-1:][0]
+				brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
+
+			# removing search bar
+			brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-bar'))
+
+			# removing scripts
+			for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+
+			# saving the list to file
+			listToFile(brw, outputdir, str(counter))
+
+			# filter recipe Url list because it contains terms-of-use, privacy, disclaimer links too
+			recipesURLs = [l for l in recipesURLs if 'recipe' in l]
 
 	# getting all recipes
 	print("Getting all recipes...")
