@@ -12,13 +12,14 @@ import json
 import pathlib
 import argparse
 import platform
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from urllib.parse import urlparse
 from urllib.request import urlretrieve
+from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.action_chains import ActionChains
-from bs4 import BeautifulSoup
 
 PAGELOAD_TO = 3
 SCROLL_TO = 1
@@ -116,28 +117,28 @@ def run(webdriverfile, outputdir, separate_json):
 	print('[CD] Proceeding with scraping')
 
 	# removing the base href header
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
+	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'base'))
 
 	# removing the name
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
+	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-transclude'))
 
 	# clicking on cookie accept
-	try: brw.find_element_by_class_name('accept-cookie-container').click()
+	try: brw.find_element(By.CLASS_NAME, 'accept-cookie-container').click()
 	except: pass
 
 	# showing all recipes
-	elementsToBeFound = int(brw.find_element_by_class_name('search-results-count__hits').get_attribute('innerHTML'))
+	elementsToBeFound = int(brw.find_element(By.CLASS_NAME, 'search-results-count__hits').get_attribute('innerHTML'))
 	previousElements = 0
 	while True:
 		# checking if ended or not
-		currentElements = len(brw.find_elements_by_class_name('link--alt'))
+		currentElements = len(brw.find_elements(By.CLASS_NAME, 'link--alt'))
 		if currentElements >= elementsToBeFound: break
 		# scrolling to the end
 		brw.execute_script("window.scrollTo(0, document.body.scrollHeight);")
 		time.sleep(SCROLL_TO)
 		# clicking on the "load more recipes" button
 		try:
-			brw.find_element_by_id('load-more-page').click()
+			brw.find_element(By.ID, 'load-more-page').click()
 			time.sleep(PAGELOAD_TO)
 		except: pass
 		print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
@@ -149,7 +150,7 @@ def run(webdriverfile, outputdir, separate_json):
 	print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
 
 	# saving all recipes urls
-	els = brw.find_elements_by_class_name('link--alt')
+	els = brw.find_elements(By.CLASS_NAME, 'link--alt')
 	recipesURLs = []
 	for el in els:
 		recipeURL = el.get_attribute('href')
@@ -158,10 +159,10 @@ def run(webdriverfile, outputdir, separate_json):
 		brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
 
 	# removing search bar
-	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('search-bar'))
+	brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'search-bar'))
 
 	# removing scripts
-	for s in brw.find_elements_by_tag_name('script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+	for s in brw.find_elements(By.TAG_NAME, 'script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
 
 	# saving the list to file
 	listToFile(brw, outputdir)
@@ -183,20 +184,20 @@ def run(webdriverfile, outputdir, separate_json):
 			brw.get(recipeURL)
 			time.sleep(PAGELOAD_TO)
 			# removing the base href header
-			try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('base'))
+			try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'base'))
 			except: pass
 			# removing the name
-			brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element_by_tag_name('core-transclude'))
+			brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-transclude'))
 			# changing the top url
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('page-header__home'), 'href', '../../index.html')
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'page-header__home'), 'href', '../../index.html')
 			
 			# saving recipe image
-			img_url = brw.find_element_by_id('recipe-card__image-loader').find_element_by_tag_name('img').get_attribute('src')
+			img_url = brw.find_element(By.ID, 'recipe-card__image-loader').find_element(By.TAG_NAME, 'img').get_attribute('src')
 			local_img_path = imgToFile(outputdir, recipeID, img_url)
 
 			# change the image url to local
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'srcset', '')
-			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element_by_class_name('core-tile__image'), 'src', local_img_path)
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'core-tile__image'), 'srcset', '')
+			brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'core-tile__image'), 'src', local_img_path)
 			
 			# saving the file
 			recipeToFile(brw, '{}recipes/{}.html'.format(outputdir, recipeID))
