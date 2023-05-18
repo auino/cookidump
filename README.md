@@ -119,6 +119,7 @@ Output is represented in this case in a different (structured) format, hence, it
 * [@nilskrause](https://github.com/NilsKrause), regarding argument parsing and updates on the link to download the Chrome WebDriver
 * [@NightProgramming](https://github.com/NightProgramming), regarding the use of selenium version 3
 * [@morela](https://github.com/morela), regarding the update of the tool to support a newer version of Selenium
+* [@ndjc](https://github.com/ndjc), fixing some deprecation warnings
 
 ### Disclaimer ###
 
