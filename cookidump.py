@@ -92,44 +92,31 @@ def run(webdriverfile, outputdir, separate_json):
     print('[CD] Welcome to cookidump, starting things off...')
     # fixing the outputdir parameter, if needed
     if outputdir[-1:][0] != '/': outputdir += '/'
-
     locale = str(input('[CD] Complete the website domain: https://cookidoo.'))
     baseURL = 'https://cookidoo.{}/'.format(locale)
-
     brw = startBrowser(webdriverfile)
-
     # opening the home page
     brw.get(baseURL)
     time.sleep(PAGELOAD_TO)
-
     reply = input('[CD] Please login to your account and then enter y to continue: ')
-
     # recipes base url
     rbURL = 'https://cookidoo.{}/search/'.format(locale)
-
     brw.get(rbURL)
     time.sleep(PAGELOAD_TO)
-
     # possible filters done here
     reply = input('[CD] Set your filters, if any, and then enter y to continue: ')
-
+    # asking for additional details for output organization
     custom_output_dir = input("[CD] enter the directory name to store the results (ex. vegeratian): ")
     if custom_output_dir : outputdir += '{}/'.format(custom_output_dir)
-
+    # proceeding
     print('[CD] Proceeding with scraping')
-
-    # removing the base href header
-    brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'base'))
-
     # removing the name
-    brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-transclude'))
-
+    brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-user-profile'))
     # clicking on cookie accept
     try: brw.find_element(By.CLASS_NAME, 'accept-cookie-container').click()
     except: pass
-
     # showing all recipes
-    elementsToBeFound = int(brw.find_element(By.CLASS_NAME, 'search-results-count__hits').get_attribute('innerHTML'))
+    elementsToBeFound = int(brw.find_element(By.CLASS_NAME, 'items-start').text.split('\n')[-1].split(' ')[0])
     previousElements = 0
     while True:
         # checking if ended or not
@@ -161,10 +148,13 @@ def run(webdriverfile, outputdir, separate_json):
         brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", el, 'href', './recipes/{}.html'.format(recipeID))
 
     # removing search bar
-    brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'search-bar'))
+    try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-search-bar'))
+    except: pass
 
     # removing scripts
-    for s in brw.find_elements(By.TAG_NAME, 'script'): brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+    for s in brw.find_elements(By.TAG_NAME, 'script'):
+        try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", s)
+        except: pass
 
     # saving the list to file
     listToFile(brw, outputdir)
@@ -189,31 +179,25 @@ def run(webdriverfile, outputdir, separate_json):
             try: brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'base'))
             except: pass
             # removing the name
-            brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-transclude'))
+            brw.execute_script("var element = arguments[0];element.parentNode.removeChild(element);", brw.find_element(By.TAG_NAME, 'core-user-profile'))
             # changing the top url
             brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'page-header__home'), 'href', '../../index.html')
-
             # saving recipe image
             img_url = brw.find_element(By.ID, 'recipe-card__image-loader').find_element(By.TAG_NAME, 'img').get_attribute('src')
             local_img_path = imgToFile(outputdir, recipeID, img_url)
-
             # change the image url to local
             brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'core-tile__image'), 'srcset', '')
             brw.execute_script("arguments[0].setAttribute(arguments[1], arguments[2]);", brw.find_element(By.CLASS_NAME, 'core-tile__image'), 'src', local_img_path)
-
             # saving the file
             recipeToFile(brw, '{}recipes/{}.html'.format(outputdir, recipeID))
-
             # extracting JSON info
             recipe = recipeToJSON(brw, recipeID)
-
             # saving JSON file, if needed
             if separate_json:
                 print('[CD] Writing recipe to JSON file')
                 with open('{}recipes/{}.json'.format(outputdir, recipeID), 'w') as outfile: json.dump(recipe, outfile)
             else:
                 recipeData.append(recipe)
-
             # printing information
             c += 1
             if c % 10 == 0: print('Dumped recipes: {}/{}'.format(c, len(recipesURLs)))
