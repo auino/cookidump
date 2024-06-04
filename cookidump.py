@@ -127,7 +127,7 @@ def run(webdriverfile, outputdir, separate_json):
         time.sleep(SCROLL_TO)
         # clicking on the "load more recipes" button
         try:
-            brw.find_element(By.ID, 'load-more-page').click()
+            brw.find_element(By.XPATH, "//button[@data-cy='load-more-button']").click()
             time.sleep(PAGELOAD_TO)
         except: pass
         print('Scrolling [{}/{}]'.format(currentElements, elementsToBeFound))
