@@ -1,2 +1,4 @@
-beautifulsoup4
-selenium>=4.8.0
+selenium>=4.11.0
+urllib3
+lxml
+cssselect

@@ -1,134 +1,104 @@
 # cookidump
 
-Easily dump cookidoo recipes from the official website
+List and export recipes from your Cookidoo collections.
+
+### Preamble ###
+
+This is a community-driven project shared within the [original repository](https://github.com/auino/cookidump).
+Consider that code has not been analyzed and tested in detail.
+
+Contributors:
+* [@ndjc](https://github.com/ndjc) (see [related issue](https://github.com/auino/cookidump/issues/36#issuecomment-3393639812))
 
 ### Description ###
 
-This program allows you to dump all recipes on [Cookidoo](https://cookidoo.co.uk) websites (available for different countries) for offline and posticipate reading.
-Those recipes are valid in particular for [Thermomix/Bimby](https://en.wikipedia.org/wiki/Thermomix) devices.
-In order to dump the recipes, a valid subscription is needed.
+This program allows you to list and export recipes from your created and saved collections on Cookidoo.
+The export is in JSON compatible with Paprika 3.
 
-The initial concept of this program was based on [jakubszalaty/cookidoo-parser](https://github.com/jakubszalaty/cookidoo-parser).
+In order to list or export the recipes, a valid subscription is needed.
 
-### Mentioning ###
+## Significant changes from the original
 
-If you intend to scientifically investigate or extend cookidump, please consider citing the following paper.
+The code has been modified using Claude AI, as well as human edits!
 
-```
-@article{cambiaso2022cookidump,
-title = {Web security and data dumping: The Cookidump case},
-journal = {Software Impacts},
-volume = {14},
-pages = {100426},
-year = {2022},
-issn = {2665-9638},
-doi = {https://doi.org/10.1016/j.simpa.2022.100426},
-url = {https://www.sciencedirect.com/science/article/pii/S2665963822001105},
-author = {Enrico Cambiaso and Maurizio Aiello},
-keywords = {Cyber-security, Data dump, Database security, Browser automation},
-abstract = {In the web security field, data dumping activities are often related to a malicious exploitation. In this paper, we focus on data dumping activities executed legitimately by scraping/storing data shown on the browser. We evaluate such operation by proposing Cookidump, a tool able to dump all recipes available on the Cookidoo© website portal. While such scenario is not relevant, in terms of security and privacy, we discuss the impact of such kind of activity for other scenarios including web applications hosting sensitive information.}
-}
-```
+The method used to find recipes is based on collections and recipe lists, not on Cookidoo queries.
 
-Further information can be found at [https://www.sciencedirect.com/science/article/pii/S2665963822001105](https://www.sciencedirect.com/science/article/pii/S2665963822001105).
+The lxml library is used to parse pages instead of BeautifulSoup, as there seemed to be correctness problems with the latter
+(and anyway, lxml is faster).
 
-### Features ###
+Collection and recipe parsing is done in parallel threads for performance reasons.
 
-* Easy to run
-* Easy to open HTML output
-* Output including a surfable list of dumped recipes
-* Customizable searches
+## Installing dependencies
 
-### Installation ###
+1. Install Python 3
+1. Install Python dependencies for the dumpCollections.py script:
 
-#### nix ####
+        pip3 install -U -r requirements.txt
+
+3. Download the [Chrome WebDriver](https://sites.google.com/chromium.org/driver/),
+   naming it appropriately for the current architecture,
+   and update the script ``cookidump`` if needed for your architecture.
+
+1. Install [npm](https://www.npmjs.com)
+
+1. Install [prettier](https://prettier.io), and the plugin [prettier-plugin-sort-json](https://www.npmjs.com/package/prettier-plugin-sort-json)
+
+## Running the script
 
 ```
-nix run github:auino/cookidump -- <outputdir> [--separate-json]
-```
-
-Nix provisions `google-chrome` together with `chromedriver`. Only 
-`<outputdir>` and `[--separate-json]` arguments are expected.
-
-#### manual ####
-
-1. Clone the repository:
-
-```
-git clone https://github.com/auino/cookidump.git
-```
-
-2. `cd` into the download folder
-
-3. Install [Python](https://www.python.org) requirements:
-
-```
-pip install -r requirements.txt
-```
-
-4. Install the [Google Chrome](https://chrome.google.com) browser, if not already installed
-
-5. Download the [Chrome WebDriver](https://sites.google.com/chromium.org/driver/) and save it on the `cookidump` folder
-
-6. You are ready to dump your recipes
-
-### Usage ###
-
-Simply run the following command to start the program. The program is interactive to simplify it's usage.
-
-```
-python cookidump.py [--separate-json] <webdriverfile> <outputdir>
+cookidump [-r recipes_folder] [-p pattern] [-l locale] [+|-h] [-s]
 ```
 
 where:
-* `webdriverfile` identifies the path to the downloaded [Chrome WebDriver](https://sites.google.com/chromium.org/driver/) (for instance, `chromedriver.exe` for Windows hosts, `./chromedriver` for Linux and macOS hosts)
-* `outputdir` identifies the path of the output directory (will be created, if not already existent)
-* `--separate-json` allows to generate a separate JSON file for each recipe, instead of one aggregate file including all recipes
 
-The program will open a [Google Chrome](https://chrome.google.com) window and wait until you are logged in into your [Cookidoo](https://cookidoo.co.uk) account (different countries are supported).
+ * ``-r recipes_folder``
+   names a folder (directory) where the lists of recipes in each collection will go
+   If this option is *not* specified, the default is ``./recipes``.<br><br>
 
-After that, follow intructions provided by the script itself to proceed with the dump.
+ * ``-p pattern``
+   provides a filter for deciding which collections and/or recipes will be dumped.
+   The pattern is of the form ``regular_expression[::regular_expression]``.
+   The first regular expression is used to match collection names; only collections matching the given regular expression are listed.
+   The second regular expression (if given) is used to match recipes; recipes matching the given regular expression are dumped to JSON files.
+   If you want to dump certain recipes from any collection, use a filter of the form ``.::recipe_pattern``; the initial dot will match all collections.
+   If you want to dump all recipes from certain collections, use a filter of the form ``collection_pattern::.``.
 
-#### Considerations ####
+ * ``-l locale``
+     provides a locale name, which the program uses to derive the URL for Cookidoo. This has not been tested for all possible Cookidoo locales.
 
-By following script instructions, it is also possible to apply custom filters to export selected recipes (for instance, in base of the dish, title and ingredients, Thermomix/Bimby version, etc.).
+ * ``+h | -h``
+     The program opens a [Google ChromeDriver](https://chrome.google.com) session.
+     With the -h flag, or if no +/-h flag is provided but authentication cookies have been saved, the session runs headless.
+     If +h is specified, the session runs interactively regardless of the presence of authentication cookies.
+     If no authentication cookies have yet been saved, or if the cookie is out of date, you will be prompted to enter a user name and password;
+     authentication cookies are then saved using that information.
 
-Output is represented by an `index.html` file, included in `outputdir`, plus a set of recipes inside of structured folders.
-By opening the generated `index.html` file on your browser, it is possible to have a list of recipes downloaded and surf to the desired recipe.
+* ``-s``
+    All saved collections (as opposed to your own recipe lists, bookmarks, and created recipes) are processed,
+    as if you had specified their names in the ``-p`` option.
 
-The number of exported recipes is limited to around `1000` for each execution.
-Hence, use of filters may help in this case to reduce the number of recipes exported.
+The program creates a file per created or saved collection, plus one for your bookmarks, plus one for your created recipes.
+That file contains lines such as:
 
-### Other approaches ###
+```
+r470647 https://cookidoo.thermomix.com/recipes/recipe/en-US/r470647 Sesame Orange Chicken
+```
+- the recipe id (such as r470647), which is a globally unique ID for the recipe (a recipe has that same ID in all instances of Cookidoo),
+- the recipe URL (which starts off differently in each Cookidoo regional instance, but ends with the same recipe ID),
+- and the recipe name.
 
-A different approach, previously adopted, is based on the retrieval of structured data on recipes.
-More information can be found on the [datastructure branch](https://github.com/auino/cookidump/tree/datastructure).
-Output is represented in this case in a different (structured) format, hence, it has to be interpreted. Such interpretation is not implemented in the linked previous commit.
+The program also creates a couple of index files, containing the names of your collections and the number of recipes in that collection.
 
-### TODO ###
-
-* Bypass the limited number of exported recipes
-* Parse downloaded recipes to store them on a database, or to generate a unique linked PDF
-* Make Chrome run headless for better speeds
-* Set up a dedicated container for the program
-
-### Supporters ###
-
-* [@vikramsoni2](https://github.com/vikramsoni2), regarding JSON saves plus minor enhancements
-* [@mrwogu](https://github.com/mrwogu), regarding additional information to be extracted on the generated JSON file, plus suggestions on the possibility to save recipes on dedicated JSON files
-* [@nilskrause](https://github.com/NilsKrause), regarding argument parsing and updates on the link to download the Chrome WebDriver
-* [@NightProgramming](https://github.com/NightProgramming), regarding the use of selenium version 3
-* [@morela](https://github.com/morela), regarding the update of the tool to support a newer version of Selenium
-* [@ndjc](https://github.com/ndjc), fixing some deprecation warnings
+A log file, log.txt, is also created, showing timing information that can be used when trrying to optimize performance.
 
 ### Disclaimer ###
 
 The authors of this program are not responsible of the usage of it.
 This program is released only for research and dissemination purposes.
 Also, the program provides users the ability to locally and temporarily store recipes accessible through a legit subscription.
-Before using this program, check Cookidoo subscription terms of service, according to the country related to the exploited subscription. 
-Sharing of the obtained recipes is not a legit activity and the authors of this program are not responsible of any illecit and sharing activity accomplished by the users.
+Before using this program, check Cookidoo subscription terms of service, according to the country related to the exploited subscription.
+Sharing of the obtained recipes is not a legit activity and the authors of this program are not responsible of any illicit and sharing activity accomplished by the users.
 
-### Contacts ###
+This program is derived from [auino/cookidump](https://github.com/auino/cookidump);
+see that program for origins, citations, disclaimers, etc.
 
-You can find me on Twitter as [@auino](https://twitter.com/auino).
