@@ -1,0 +1,54 @@
+#!/bin/zsh
+
+export PATH=.:$PATH
+RECIPES=recipes
+INTERACTIVE=NO
+
+# Parse options
+while   [[ $# -gt 0 ]]
+do
+    case "$1" in
+    (-h|--headless)
+        HEADLESS=--headless
+        shift
+        ;;
+    (+h)
+        INTERACTIVE=true
+        shift
+        ;;
+    (-s|--saved)
+        FLAGS="$FLAGS -s"
+        shift
+        ;;
+    (-l|--locale)
+        FLAGS="$FLAGS -l '$2'"
+        shift 2
+        ;;
+    (-r|--recipes)
+        RECIPES="$2"
+        shift 2
+        ;;
+    (-p|--pattern)
+        Pattern="$2"
+        FLAGS="$FLAGS -p '$Pattern'"
+        shift 2
+        ;;
+    (*) echo "Usage: $0 [+|-h] [-s] [-l locale] [-r recipes-dir] [-p collection-pattern[::recipe-pattern]]" 2>&1
+        exit 1
+        ;;
+    esac
+done
+
+case "$Pattern" in
+    (*::*) FLAGS="$FLAGS -j json.staging" ;;
+esac
+
+# Test to see if we have saved authentication data
+if	[ -f cookies.json ]
+then	[[ "X$INTERACTIVE" == "XNO" ]] && HEADLESS=--headless
+else	FLAGS="$FLAGS --save-cookies"
+fi
+FLAGS="$FLAGS $HEADLESS"
+
+# Dump Cookidoo contents
+eval python3 ./dumpCollections.py ${CHROMEDRIVER-./chromedriver.$(uname -p)} "$RECIPES" $FLAGS || exit 1
