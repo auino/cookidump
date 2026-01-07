@@ -122,6 +122,11 @@ Another community-driven approach, supported by some AI, has been released in th
 * [@NightProgramming](https://github.com/NightProgramming), regarding the use of selenium version 3
 * [@morela](https://github.com/morela), regarding the update of the tool to support a newer version of Selenium
 * [@ndjc](https://github.com/ndjc), fixing some deprecation warnings
+* [@paoloaq](https://github.com/paoloaq), fixing page scrolling
+
+### Extensions ###
+
+* [GAC27/ReceitasDaAvoGenerator](https://github.com/GAC27/ReceitasDaAvoGenerator) implements a tool generating a PDF "book" file from the output provided by [cookidump](https://github.com/auino/cookidump)
 
 ### Disclaimer ###
 
